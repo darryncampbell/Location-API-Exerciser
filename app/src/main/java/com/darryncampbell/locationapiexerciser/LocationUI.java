@@ -12,4 +12,7 @@ public abstract interface LocationUI {
     public void UpdateUIWithFusedLocation(Location location);
     public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, Location theLocation);
     public void UpdateUIApplicationServicesAvailable(String isAvailable);
+
+    //todo
+    public void startIntentService(Location location);
 }

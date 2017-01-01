@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.List;
  */
 
 public class LocationManagerWrapper {
+
+    public static final String TAG = "LOCATION API EXERCISER";
 
     Location gpsLocationAosp;
     Location networkLocationAosp;
@@ -150,6 +153,7 @@ public class LocationManagerWrapper {
             public void onLocationChanged(Location location) {
                 gpsLocationAosp = location;
                 ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, gpsLocationAosp);
+                Log.i(TAG, "Received Location from GPS: " + location.toString());
             }
 
             @Override
@@ -170,13 +174,17 @@ public class LocationManagerWrapper {
             }
 
             @Override
-            public void onProviderEnabled(String s) {
+            public void onProviderEnabled(String s)
+            {
                 txtGpsProviderStatus.setText("Enabled");
+                Log.i(TAG, "GPS Provider is Enabled");
             }
 
             @Override
-            public void onProviderDisabled(String s) {
+            public void onProviderDisabled(String s)
+            {
                 txtGpsProviderStatus.setText("Disabled");
+                Log.i(TAG, "GPS Provider is disabled");
             }
         };
 
@@ -186,6 +194,7 @@ public class LocationManagerWrapper {
             public void onLocationChanged(Location location) {
                 networkLocationAosp = location;
                 ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, networkLocationAosp);
+                Log.i(TAG, "Received Location from Network: " + location.toString());
             }
 
             @Override
@@ -206,13 +215,16 @@ public class LocationManagerWrapper {
             }
 
             @Override
-            public void onProviderEnabled(String s) {
+            public void onProviderEnabled(String s)
+            {
                 txtNetworkProviderStatus.setText("Enabled");
+                Log.i(TAG, "Network provider is enabled");
             }
 
             @Override
             public void onProviderDisabled(String s) {
                 txtNetworkProviderStatus.setText("Disabled");
+                Log.i(TAG, "Network provider is disabled");
             }
         };
 

@@ -5,6 +5,7 @@ package com.darryncampbell.locationapiexerciser;
  */
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -68,6 +69,7 @@ public class LocationServicesWrapper  implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
+        Log.i(TAG, "Location Services connected");
         fusedLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (fusedLocation != null) {
             ui.UpdateUIApplicationServicesAvailable("Yes");
@@ -80,16 +82,12 @@ public class LocationServicesWrapper  implements
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-        // onConnectionFailed.
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
 
     @Override
     public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
         Log.i(TAG, "Connection suspended");
         mGoogleApiClient.connect();
     }
@@ -114,6 +112,10 @@ public class LocationServicesWrapper  implements
         //  GMS Location Listener
         fusedLocation = location;
         ui.UpdateUIWithFusedLocation(fusedLocation);
+        //// TODO: 01/01/2017
+        ui.startIntentService(location);
+        Log.i(TAG, "Received location from Google Services: " + location.toString());
     }
+
 
 }

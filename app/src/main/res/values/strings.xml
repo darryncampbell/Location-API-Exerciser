@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Location API Exerciser</string>
     <string name="action_settings">Settings</string>
+    <string name="service_not_available">Geocode service not available</string>
+    <string name="invalid_lat_long_used">Geocode invalid lat / long</string>
+    <string name="no_address_found">Geocode NO location found</string>
+    <string name="address_found">Geocode location found</string>
 </resources>

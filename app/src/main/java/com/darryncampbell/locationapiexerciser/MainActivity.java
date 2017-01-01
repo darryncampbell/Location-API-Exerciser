@@ -1,10 +1,13 @@
 package com.darryncampbell.locationapiexerciser;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
+import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -13,6 +16,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 
 
@@ -24,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     Location customLocation;
     LocationServicesWrapper locationServicesWrapper = null;
     LocationManagerWrapper locationManagerWrapper = null;
+    public AddressResultReceiver mResultReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationManagerWrapper = new LocationManagerWrapper(this, this, customProviderName);
         locationServicesWrapper = new LocationServicesWrapper(this, this);
         customProviderName = "";
+        mResultReceiver = new AddressResultReceiver(new Handler());
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -153,5 +159,36 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     public void UpdateUIApplicationServicesAvailable(String isAvailable) {
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
         txtLocationServicesAvailable.setText(isAvailable);
+    }
+
+    public void startIntentService(Location location) {
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, location);
+        startService(intent);
+    }
+
+    class AddressResultReceiver extends ResultReceiver {
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            // Display the address string
+            // or an error message sent from the intent service.
+            String addressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
+            Log.i(TAG, addressOutput);
+            //todo
+            //displayAddressOutput();
+
+            //// TODO: 01/01/2017
+            // Show a toast message if an address was found.
+            //if (resultCode == FetchAddressIntentService.Constants.SUCCESS_RESULT) {
+            //    showToast(getString(R.string.address_found));
+           // }
+
+        }
     }
 }
