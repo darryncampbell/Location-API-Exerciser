@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="false">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_scrolling"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.darryncampbell.locationapiexerciser.MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <TextView
+        android:id="@+id/headingStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status"
+        android:layout_marginTop="40dp"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:text="Location Enabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblLocationEnabled"
+        android:layout_below="@+id/headingStatus"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtStatusEnabled"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/lblLocationEnabled"
+        android:layout_alignBottom="@+id/lblLocationEnabled"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Location Services Available"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lblLocationEnabled"
+        android:layout_alignParentStart="true"
+        android:id="@+id/lblLocationServicesAvailable"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtlocationServicesAvailable"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/lblLocationServicesAvailable"
+        android:layout_alignBottom="@+id/lblLocationServicesAvailable"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Network Provider Status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblNetworkProviderStatus"
+        android:textSize="18sp"
+        android:layout_below="@+id/lblLocationServicesAvailable"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNetworkProviderStatus"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/lblNetworkProviderStatus"
+        android:layout_alignBottom="@+id/lblNetworkProviderStatus"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="GPS Provider Status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGpsProviderStatus"
+        android:textSize="18sp"
+        android:layout_below="@+id/lblNetworkProviderStatus"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtGpsProviderStatus"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/lblGpsProviderStatus"
+        android:layout_alignBottom="@+id/lblGpsProviderStatus"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Custom Provider Status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblCustomProviderStatus"
+        android:textSize="18sp"
+        android:layout_below="@+id/lblGpsProviderStatus"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtCustomProviderStatus"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/lblCustomProviderStatus"
+        android:layout_alignBottom="@+id/lblCustomProviderStatus"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Other Providers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblOtherProviderStatus"
+        android:textSize="18sp"
+        android:layout_below="@+id/lblCustomProviderStatus"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtOtherProviderStatus"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/lblOtherProviderStatus"
+        android:layout_alignBottom="@+id/lblOtherProviderStatus"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Position (AOSP / GMS)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lblOtherProviderStatus"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:id="@+id/headingPositionAOSP" />
+
+    <TextView
+        android:text="Network Longitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblNetworkLongitude"
+        android:layout_below="@+id/headingPositionAOSP"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNetworkLongitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblNetworkLongitude"
+        android:layout_alignBottom="@+id/lblNetworkLongitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Network Latitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblNetworkLatitude"
+        android:layout_below="@+id/lblNetworkLongitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNetworkLatitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblNetworkLatitude"
+        android:layout_alignBottom="@+id/lblNetworkLatitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Network Accuracy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblNetworkAccuracy"
+        android:layout_below="@+id/lblNetworkLatitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNetworkAccuracy"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblNetworkAccuracy"
+        android:layout_alignBottom="@+id/lblNetworkAccuracy"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="GPS Longitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGpsLongitude"
+        android:layout_below="@+id/lblNetworkAccuracy"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtGpsLongitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblGpsLongitude"
+        android:layout_alignBottom="@+id/lblGpsLongitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="GPS Latitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGpsLatitude"
+        android:layout_below="@+id/lblGpsLongitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtGpsLatitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblGpsLatitude"
+        android:layout_alignBottom="@+id/lblGpsLatitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="GPS Accuracy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGpsAccuracy"
+        android:layout_below="@+id/lblGpsLatitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtGpsAccuracy"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblGpsAccuracy"
+        android:layout_alignBottom="@+id/lblGpsAccuracy"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Custom Provider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblCustomPosition"
+        android:layout_below="@+id/lblGpsAccuracy"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtCustomPosition"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblCustomPosition"
+        android:layout_alignBottom="@+id/lblCustomPosition"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Position (GMS Only)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lblCustomPosition"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:id="@+id/headingPositionGMS" />
+
+    <TextView
+        android:text="Fused Longitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblFusedLongitude"
+        android:layout_below="@+id/headingPositionGMS"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtFusedLongitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblFusedLongitude"
+        android:layout_alignBottom="@+id/lblFusedLongitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Fused Latitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblFusedLatitude"
+        android:layout_below="@+id/lblFusedLongitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtFusedLatitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblFusedLatitude"
+        android:layout_alignBottom="@+id/lblFusedLatitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Fused Accuracy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblFusedAccuracy"
+        android:layout_below="@+id/lblFusedLatitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtFusedAccuracy"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblFusedAccuracy"
+        android:layout_alignBottom="@+id/lblFusedAccuracy"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Location Services Value Adds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lblFusedAccuracy"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:id="@+id/headingPositionLocationServicesVA" />
+
+    <TextView
+        android:text="Settings Request"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblLocationSettingsForHighAccuracy"
+        android:layout_below="@+id/headingPositionLocationServicesVA"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="18dp"
+        android:textSize="18sp" />
+
+    <Button
+        android:text="High Accuracy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtLocationSettingsForHighAccuracy"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblLocationSettingsForHighAccuracy"
+        android:layout_alignBottom="@+id/lblLocationSettingsForHighAccuracy"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Settings Request"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblLocationSettingsForBle"
+        android:layout_below="@+id/lblLocationSettingsForHighAccuracy"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="18dp"
+        android:textSize="18sp" />
+
+    <Button
+        android:text="Bluetooth LE"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtLocationSettingsForBle"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblLocationSettingsForBle"
+        android:layout_alignBottom="@+id/lblLocationSettingsForBle"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="Activity Recognition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblActivityRecognition"
+        android:layout_below="@+id/lblLocationSettingsForBle"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="18dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtActivityRecognition"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblActivityRecognition"
+        android:layout_alignBottom="@+id/lblActivityRecognition"
+        android:layout_alignParentEnd="true" />
+
+
+</RelativeLayout>
+</ScrollView>

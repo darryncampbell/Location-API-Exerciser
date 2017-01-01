@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Location API Exerciser</string>
+    <string name="action_settings">Settings</string>
+</resources>
