@@ -14,5 +14,5 @@ public abstract interface LocationUI {
     public void UpdateUIApplicationServicesAvailable(String isAvailable);
 
     //todo
-    public void startIntentService(Location location);
+    public void convertLocationToAddress(Location location);
 }

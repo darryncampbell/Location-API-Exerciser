@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
@@ -13,11 +14,15 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+
+import static com.darryncampbell.locationapiexerciser.R.styleable.View;
 
 
 public class MainActivity extends AppCompatActivity implements LocationUI {
@@ -40,7 +45,29 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationServicesWrapper = new LocationServicesWrapper(this, this);
         customProviderName = "";
         mResultReceiver = new AddressResultReceiver(new Handler());
+        Button settingsRequestHighAccuracy = (Button)findViewById(R.id.btnLocationSettingsForHighAccuracy);
+        Button settingsRequestBle = (Button)findViewById(R.id.btnLocationSettingsForBle);
+        settingsRequestHighAccuracy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                locationServicesWrapper.GetLocationSettings(MainActivity.this, false);
+            }
+        });
+        settingsRequestBle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                locationServicesWrapper.GetLocationSettings(MainActivity.this, true);
+            }
+        });
 
+        Intent startIntent = getIntent();
+        if (startIntent.hasExtra("ACTIVITY_TEXT"))
+        {
+            //  todo make ACTIVYTEXT a constant
+            //  todo update the UI in a separate method
+            TextView activityText = (TextView)findViewById(R.id.txtActivityRecognition);
+            activityText.setText(startIntent.getStringExtra("ACTIVITY_TEXT"));
+        }
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -58,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         super.onResume();
 
     }
+
 
     @Override
     protected void onStart() {
@@ -138,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         final TextView txtFusedLongitude = (TextView) findViewById(R.id.txtFusedLongitude);
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, location);
+        convertLocationToAddress(location);
     }
 
     public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, Location theLocation)
@@ -153,15 +182,19 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             latitude.setText(new DecimalFormat("#.#######").format(theLocation.getLatitude()));
             longitude.setText(new DecimalFormat("#.#######").format(theLocation.getLongitude()));
             accuracy.setText(new DecimalFormat("#.#######").format(theLocation.getAccuracy()));
+            convertLocationToAddress(theLocation);
         }
     }
 
     public void UpdateUIApplicationServicesAvailable(String isAvailable) {
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
+        TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
         txtLocationServicesAvailable.setText(isAvailable);
+        if (isAvailable.equalsIgnoreCase("no"))
+            txtFusedAddress.setText("Services Disabled");
     }
 
-    public void startIntentService(Location location) {
+    public void convertLocationToAddress(Location location) {
         Intent intent = new Intent(this, FetchAddressIntentService.class);
         intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mResultReceiver);
         intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, location);
@@ -175,20 +208,34 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
+            final TextView txtGPSAddress = (TextView) findViewById(R.id.txtGPSAddress);
+            final TextView txtNetworkAddress = (TextView) findViewById(R.id.txtNetworkAddress);
+            final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
 
             // Display the address string
             // or an error message sent from the intent service.
             String addressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
-            Log.i(TAG, addressOutput);
+            String provider = resultData.getString(FetchAddressIntentService.Constants.LOCATION_PROVIDER);
+            Log.i(TAG, "Received decoded address from " + provider + ": " + addressOutput);
+            if (provider.equals(LocationManager.GPS_PROVIDER))
+            {
+                txtGPSAddress.setText(addressOutput);
+            }
+            else if (provider.equals(LocationManager.NETWORK_PROVIDER))
+            {
+                txtNetworkAddress.setText(addressOutput);
+            }
+            else if (provider.equalsIgnoreCase("fused"))
+            {
+                txtFusedAddress.setText(addressOutput);
+            }
+            else
+            {
+                //  Unrecognised source
+                Log.e(TAG, "Unrecognised provider");
+            }
             //todo
             //displayAddressOutput();
-
-            //// TODO: 01/01/2017
-            // Show a toast message if an address was found.
-            //if (resultCode == FetchAddressIntentService.Constants.SUCCESS_RESULT) {
-            //    showToast(getString(R.string.address_found));
-           // }
-
         }
     }
 }

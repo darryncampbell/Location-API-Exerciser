@@ -51,6 +51,8 @@ public class LocationManagerWrapper {
         TextView txtGpsProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtGpsProviderStatus);
         TextView txtNetworkProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtNetworkProviderStatus);
         TextView txtOtherProviders = (TextView) ((Activity) context).findViewById(R.id.txtOtherProviderStatus);
+        TextView txtGPSAddress = (TextView) ((Activity) context).findViewById(R.id.txtGPSAddress);
+        TextView txtNetworkAddress = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAddress);
 
         if (isLocationEnabled(context))
             txtStatusEnabled.setText("Yes");
@@ -65,8 +67,10 @@ public class LocationManagerWrapper {
             else {
                 if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
                     txtGpsProviderStatus.setText("Enabled");
-                else
+                else {
                     txtGpsProviderStatus.setText("Disabled");
+                    txtGPSAddress.setText("Provider Disabled");
+                }
             }
         } catch (SecurityException e) {
             txtGpsProviderStatus.setText("Permissions Error");
@@ -80,8 +84,10 @@ public class LocationManagerWrapper {
             else {
                 if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
                     txtNetworkProviderStatus.setText("Enabled");
-                else
+                else {
                     txtNetworkProviderStatus.setText("Disabled");
+                    txtNetworkAddress.setText("Provider Disabled");
+                }
             }
         } catch (SecurityException e) {
             txtNetworkProviderStatus.setText("Permissions Error");
@@ -147,6 +153,8 @@ public class LocationManagerWrapper {
         final TextView txtNetworkLongitude = (TextView) ((Activity) context).findViewById(R.id.txtNetworkLongitude);
         final TextView txtNetworkAccuracy = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAccuracy);
         final TextView txtNetworkProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtNetworkProviderStatus);
+        final TextView txtGPSAddress = (TextView) ((Activity) context).findViewById(R.id.txtGPSAddress);
+        final TextView txtNetworkAddress = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAddress);
 
         gpsListener = new LocationListener() {
             @Override
@@ -184,6 +192,7 @@ public class LocationManagerWrapper {
             public void onProviderDisabled(String s)
             {
                 txtGpsProviderStatus.setText("Disabled");
+                txtGPSAddress.setText("Provider Disabled");
                 Log.i(TAG, "GPS Provider is disabled");
             }
         };
@@ -224,6 +233,7 @@ public class LocationManagerWrapper {
             @Override
             public void onProviderDisabled(String s) {
                 txtNetworkProviderStatus.setText("Disabled");
+                txtNetworkAddress.setText("Provider Disabled");
                 Log.i(TAG, "Network provider is disabled");
             }
         };
