@@ -25,6 +25,9 @@ import java.util.List;
 public class LocationManagerWrapper {
 
     public static final String TAG = "LOCATION API EXERCISER";
+    static final long TEN_SECONDS = 1000 * 10;
+    static final long TIME_BETWEEN_GPS_UPDATES = TEN_SECONDS;
+    static final long TIME_BETWEEN_NETWORK_UPDATES = TEN_SECONDS;
 
     Location gpsLocationAosp;
     Location networkLocationAosp;
@@ -36,6 +39,7 @@ public class LocationManagerWrapper {
     LocationUI ui;
     LocationListener gpsListener;
     LocationListener networkListener;
+    Boolean mStarted;
 
     public LocationManagerWrapper(LocationUI ui, Context context, String customProviderName) {
         this.ui = ui;
@@ -44,6 +48,7 @@ public class LocationManagerWrapper {
         this.customProviderName = customProviderName;
         gpsListener = null;
         networkListener = null;
+        mStarted = false;
     }
 
     public void populateUiStatus() {
@@ -130,6 +135,7 @@ public class LocationManagerWrapper {
     }
 
     public void stopAospLocation() {
+        mStarted = false;
         if (gpsListener != null) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 locationManager.removeUpdates(gpsListener);
@@ -155,12 +161,15 @@ public class LocationManagerWrapper {
         final TextView txtNetworkProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtNetworkProviderStatus);
         final TextView txtGPSAddress = (TextView) ((Activity) context).findViewById(R.id.txtGPSAddress);
         final TextView txtNetworkAddress = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAddress);
+        if (mStarted)
+            return;
+        mStarted = true;
 
         gpsListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 gpsLocationAosp = location;
-                ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, gpsLocationAosp);
+                ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, gpsLocationAosp);
                 Log.i(TAG, "Received Location from GPS: " + location.toString());
             }
 
@@ -202,7 +211,7 @@ public class LocationManagerWrapper {
             @Override
             public void onLocationChanged(Location location) {
                 networkLocationAosp = location;
-                ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, networkLocationAosp);
+                ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, networkLocationAosp);
                 Log.i(TAG, "Received Location from Network: " + location.toString());
             }
 
@@ -242,28 +251,28 @@ public class LocationManagerWrapper {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 //  Just to get rid of Eclipse warnings
             }
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TIME_BETWEEN_GPS_UPDATES, 0, gpsListener);
             Location lastGpsPosition = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (lastGpsPosition != null)
             {
                 gpsLocationAosp = lastGpsPosition;
-                ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, gpsLocationAosp);
+                ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, gpsLocationAosp);
             }
         }
         else
-            ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, null);
+            ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, null);
 
         if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
         {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, networkListener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TIME_BETWEEN_NETWORK_UPDATES, 0, networkListener);
             Location lastNetworkPosition = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             if (lastNetworkPosition != null)
             {
                 networkLocationAosp = lastNetworkPosition;
-                ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, networkLocationAosp);
+                ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, networkLocationAosp);
             }
         }
         else
-            ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, null);
+            ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, null);
     }
 }

@@ -6,6 +6,8 @@
     <string name="no_address_found">NO location found</string>
     <string name="address_found">Geocode location found</string>
 
+    <!--  Constraints -->
+
     <!-- Activity detection strings -->
     <string name="in_vehicle">In a vehicle</string>
     <string name="on_bicycle">On a bicycle</string>
@@ -16,4 +18,6 @@
     <string name="unknown">Unknown activity</string>
     <string name="walking">Walking</string>
     <string name="unidentifiable_activity">Unidentifiable activity: %1$d</string>
+    <string name="Activity_Broadcast_Action">com.darryncampbell.locationapiexerciser.ACTIVITY</string>
+    <string name="Activity_Recognition_Action_Text">ACTIVITY_TEXT</string>
 </resources>

@@ -30,20 +30,23 @@ public class FetchAddressIntentService extends IntentService {
         super("FetchAddressIntentService");
     }
 
+    //  Intents will be received either as a request to resolve the addresses from the GeoCode lookup or
+    //  as activity recognition returned from the activity recognizer
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             mReceiver = intent.getParcelableExtra(Constants.RECEIVER);
             String errorMessage = "";
 
-            // Get the location passed to this service through an extra.
-                Location location = intent.getParcelableExtra(
-                        Constants.LOCATION_DATA_EXTRA);
+            Location location = intent.getParcelableExtra(
+                    Constants.LOCATION_DATA_EXTRA);
             if (location != null)
             {
+                //  Only Geocoded addresses will have a location
                 String provider = location.getProvider();
                 if (!Geocoder.isPresent()) {
                     deliverResultToReceiver(Constants.FAILURE_RESULT, provider, "No Location Services");
+                    return;
                 }
                 Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
@@ -84,7 +87,6 @@ public class FetchAddressIntentService extends IntentService {
                     for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
                         addressFragments.add(address.getAddressLine(i));
                     }
-                    Log.i(TAG, getString(R.string.address_found));
                     deliverResultToReceiver(Constants.SUCCESS_RESULT, provider,
                             TextUtils.join(System.getProperty("line.separator"),
                                     addressFragments));
@@ -110,16 +112,11 @@ public class FetchAddressIntentService extends IntentService {
                                 da.getType());
                     }
                 }
-                String activityText = "" + type + " with confidence: " + String.valueOf(confidence) + "%";
-                //  todo SEND AS A BROADCAST SO WE DON'T HAVE TO START THE APP EACH TIME!!
+                String activityText = "" + type + " [" + String.valueOf(confidence) + "%]";
                 Log.i(TAG, "Current Activity: " + activityText);
-                Intent returnIntent = new Intent(this, MainActivity.class);
-                returnIntent.putExtra("ACTIVITY_TEXT", activityText);
-                returnIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //startActivity(returnIntent);
                 Intent broadcastIntent = new Intent();
-                broadcastIntent.setAction("com.darryncampbell.locationapiexerciser.ACTIVITY");
-                broadcastIntent.putExtra("ACTIVITY_TEXT", activityText);
+                broadcastIntent.setAction(getResources().getString(R.string.Activity_Broadcast_Action));
+                broadcastIntent.putExtra(getResources().getString(R.string.Activity_Recognition_Action_Text), activityText);
                 sendBroadcast(broadcastIntent);
             }
         }

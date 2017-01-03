@@ -10,9 +10,8 @@ import android.widget.TextView;
 
 public abstract interface LocationUI {
     public void UpdateUIWithFusedLocation(Location location);
-    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, Location theLocation);
-    public void UpdateUIApplicationServicesAvailable(String isAvailable);
+    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, TextView address, Location theLocation);
+    public void UpdateUIApplicationServicesAvailable(Boolean isAvailable);
 
-    //todo
     public void convertLocationToAddress(Location location);
 }

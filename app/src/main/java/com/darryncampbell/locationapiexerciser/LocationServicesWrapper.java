@@ -38,6 +38,10 @@ public class LocationServicesWrapper  implements
         ConnectionCallbacks, OnConnectionFailedListener, com.google.android.gms.location.LocationListener{
 
     public static final String TAG = "LOCATION API EXERCISER";
+    static final long THIRTY_SECONDS = 1000 * 30;
+    static final long FIVE_SECONDS = 1000 * 5;
+    static final long TEN_SECONDS = 1000 * 10;
+    static final long TIME_BETWEEN_GMS_UPDATES = THIRTY_SECONDS;
 
     protected GoogleApiClient mGoogleApiClient;
     Location fusedLocation;
@@ -76,7 +80,7 @@ public class LocationServicesWrapper  implements
 
     public void onStop()
     {
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
     }
@@ -86,29 +90,26 @@ public class LocationServicesWrapper  implements
         Log.i(TAG, "Location Services connected");
         fusedLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (fusedLocation != null) {
-            ui.UpdateUIApplicationServicesAvailable("Yes");
+            ui.UpdateUIApplicationServicesAvailable(true);
             ui.UpdateUIWithFusedLocation(fusedLocation);
             startGMSLocation();
         }
         else
-            ui.UpdateUIApplicationServicesAvailable("No");
+            ui.UpdateUIApplicationServicesAvailable(false);
 
         //  Start the ACtivity results
-        //  todo - tidy
         Intent intent = new Intent(context, FetchAddressIntentService.class);
-        //intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mActivityReceiver);
-        //intent.putExtra("HI3", (ResultReceiver)mActivityReceiver);
-        //intent.putExtra("HI3", "HIII");
         PendingIntent pi = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
                 mGoogleApiClient,
-                5000,
+                TEN_SECONDS,
                 pi);
     }
 
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
+        ui.UpdateUIApplicationServicesAvailable(false);
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
@@ -116,6 +117,7 @@ public class LocationServicesWrapper  implements
     @Override
     public void onConnectionSuspended(int cause) {
         Log.i(TAG, "Connection suspended");
+        ui.UpdateUIApplicationServicesAvailable(false);
         mGoogleApiClient.connect();
     }
 
@@ -125,12 +127,11 @@ public class LocationServicesWrapper  implements
             return;
 
         pollingGMS = true;
-        final long THIRTY_SECONDS = 1000 * 30;
-        final long FIVE_SECONDS = 1000 * 5;
+
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(THIRTY_SECONDS);
-        locationRequest.setFastestInterval(FIVE_SECONDS);
+        locationRequest.setInterval(TIME_BETWEEN_GMS_UPDATES);
+        locationRequest.setFastestInterval(TEN_SECONDS);
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
     }
 
@@ -144,11 +145,15 @@ public class LocationServicesWrapper  implements
 
     public void GetLocationSettings(final Activity theActivity, Boolean needBle)
     {
-        //  todo pass as parameters
-        //  todo return
+        //  Check we are conneted to Google location services
+        if (!mGoogleApiClient.isConnected())
+        {
+            Toast.makeText(theActivity, "Not connected to Google Location Services", Toast.LENGTH_SHORT).show();
+            return;
+        }
         LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(TEN_SECONDS);
+        mLocationRequest.setFastestInterval(FIVE_SECONDS);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -162,11 +167,9 @@ public class LocationServicesWrapper  implements
             @Override
             public void onResult(LocationSettingsResult locationSettingsResult) {
                 final Status status = locationSettingsResult.getStatus();
-//                  final LocationSettingsStates = locationSettingsResult.getLocationSettingsStates();
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can
-                        // initialize location requests here.
+                        // All location settings are satisfied. The client can initialize location requests.
                         Toast.makeText(theActivity, "Location Settings CORRECT", Toast.LENGTH_SHORT).show();
                         Log.i(TAG, "Location Settings returned Success");
                         break;
@@ -176,10 +179,10 @@ public class LocationServicesWrapper  implements
                         try {
                             // Show the dialog by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
-                            Toast.makeText(theActivity, "Need additional permissions", Toast.LENGTH_LONG).show();
+                            Toast.makeText(theActivity, "Need additional permissions", Toast.LENGTH_SHORT).show();
                             status.startResolutionForResult(
                                     theActivity,
-                                    1);
+                                    MainActivity.LOCATION_SETTINGS_PERMISSION_REQUEST);
                         } catch (IntentSender.SendIntentException e) {
                             // Ignore the error.
                         }

@@ -1,6 +1,7 @@
 package com.darryncampbell.locationapiexerciser;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +32,7 @@ import static com.darryncampbell.locationapiexerciser.R.styleable.View;
 public class MainActivity extends AppCompatActivity implements LocationUI {
 
     public static final String TAG = "LOCATION API EXERCISER";
+    public static final int LOCATION_SETTINGS_PERMISSION_REQUEST = 1;
     boolean locationPermission = false;
     String customProviderName;
     Location customLocation;
@@ -63,20 +65,9 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             }
         });
 
-        Intent startIntent = getIntent();
-        if (startIntent.hasExtra("ACTIVITY_TEXT"))
-        {
-            //  todo make ACTIVYTEXT a constant
-            //  todo update the UI in a separate method
-            TextView activityText = (TextView)findViewById(R.id.txtActivityRecognition);
-            activityText.setText(startIntent.getStringExtra("ACTIVITY_TEXT"));
-        }
-
+        //  Register the broadcast receiver for activity recognition
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.darryncampbell.locationapiexerciser.ACTIVITY");
-        //  Whilst we're here also register to receive broadcasts via DataWedge scanning
-//        filter.addAction(getResources().getString(R.string.activity_intent_filter_action));
-//        filter.addAction(getResources().getString(R.string.activity_action_from_service));
+        filter.addAction(this.getResources().getString(R.string.Activity_Broadcast_Action));
         registerReceiver(myBroadcastReceiver, filter);
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -88,6 +79,25 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 //            }
 //        });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == LOCATION_SETTINGS_PERMISSION_REQUEST)
+        {
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    Log.i(TAG, "User agreed to make required location settings changes.");
+                    Toast.makeText(this, "User agreed to change location settings", Toast.LENGTH_LONG).show();
+                    break;
+                case Activity.RESULT_CANCELED:
+                    Log.i(TAG, "User chose not to make required location settings changes.");
+                    Toast.makeText(this, "User did NOT agree to change location settings", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
     }
 
 
@@ -182,17 +192,18 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         final TextView txtFusedLatitude = (TextView) findViewById(R.id.txtFusedLatitude);
         final TextView txtFusedLongitude = (TextView) findViewById(R.id.txtFusedLongitude);
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
-        UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, location);
-        convertLocationToAddress(location);
+        final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
+        UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
     }
 
-    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, Location theLocation)
+    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, TextView address, Location theLocation)
     {
         if (theLocation == null)
         {
             latitude.setText("Unavailable");
             longitude.setText("Unavailable");
             accuracy.setText("Unavailable");
+            address.setText("Unavailable");
         }
         else
         {
@@ -203,12 +214,19 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         }
     }
 
-    public void UpdateUIApplicationServicesAvailable(String isAvailable) {
+    public void UpdateUIApplicationServicesAvailable(Boolean isAvailable) {
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
-        TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
-        txtLocationServicesAvailable.setText(isAvailable);
-        if (isAvailable.equalsIgnoreCase("no"))
-            txtFusedAddress.setText("Services Disabled");
+        if (isAvailable)
+        {
+            txtLocationServicesAvailable.setText("Yes");
+        }
+        else
+        {
+            txtLocationServicesAvailable.setText("No");
+            UpdateUIWithFusedLocation(null);
+            TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+            activityRecognitionTxt.setText("No Location Services");
+        }
     }
 
     public void convertLocationToAddress(Location location) {
@@ -251,53 +269,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 //  Unrecognised source
                 Log.e(TAG, "Unrecognised provider");
             }
-            //todo
-            //displayAddressOutput();
         }
     }
 
+    //  Broadcast receiver for the address
     private BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            //  todo correct logic here
-            Log.e(TAG, "Hello");
-/*            if (action.equals(ACTION_ENUMERATEDLISET)) {
-                Bundle b = intent.getExtras();
-                for (String key : b.keySet())
-                {
-                    //  Note, documentation for key was wrong for this.  I will get that fixed
-                    Log.v(LOG_TAG, key);
-                }
-                String[] scanner_list = b.getStringArray(KEY_ENUMERATEDSCANNERLIST);
-                String userFriendlyScanners = "";
-                for (int i = 0; i < scanner_list.length; i++)
-                {
-                    userFriendlyScanners += "{" + scanner_list[i] + "} ";
-                }
-                Toast.makeText(getApplicationContext(), userFriendlyScanners, Toast.LENGTH_LONG).show();
-            }
-            else if (action.equals(getResources().getString(R.string.activity_intent_filter_action)))
-            {
-                try {
-                    displayScanResult(intent, "via Broadcast");
-                }
-                catch (Exception e)
-                {
-                    //  Catch if the UI does not exist when we receive the broadcast... this is not designed to be a production app
-                }
-            }
-            else if (action.equals(getResources().getString(R.string.activity_action_from_service)))
-            {
-                try {
-                    displayScanResult(intent, "via Service");
-                }
-                catch (Exception e)
-                {
-                    //  Catch if the UI does not exist when we receive the broadcast... this is not designed to be a production app
-                }
-            }
-*/
+            String actionText = intent.getStringExtra(getResources().getString(R.string.Activity_Recognition_Action_Text));
+            TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+            activityRecognitionTxt.setText(actionText);
         }
     };
 
