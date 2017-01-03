@@ -116,7 +116,11 @@ public class FetchAddressIntentService extends IntentService {
                 Intent returnIntent = new Intent(this, MainActivity.class);
                 returnIntent.putExtra("ACTIVITY_TEXT", activityText);
                 returnIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(returnIntent);
+                //startActivity(returnIntent);
+                Intent broadcastIntent = new Intent();
+                broadcastIntent.setAction("com.darryncampbell.locationapiexerciser.ACTIVITY");
+                broadcastIntent.putExtra("ACTIVITY_TEXT", activityText);
+                sendBroadcast(broadcastIntent);
             }
         }
     }

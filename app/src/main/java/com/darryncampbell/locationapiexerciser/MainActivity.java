@@ -1,7 +1,10 @@
 package com.darryncampbell.locationapiexerciser;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -68,6 +71,14 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             TextView activityText = (TextView)findViewById(R.id.txtActivityRecognition);
             activityText.setText(startIntent.getStringExtra("ACTIVITY_TEXT"));
         }
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.darryncampbell.locationapiexerciser.ACTIVITY");
+        //  Whilst we're here also register to receive broadcasts via DataWedge scanning
+//        filter.addAction(getResources().getString(R.string.activity_intent_filter_action));
+//        filter.addAction(getResources().getString(R.string.activity_action_from_service));
+        registerReceiver(myBroadcastReceiver, filter);
+
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -111,6 +122,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationManagerWrapper.stopAospLocation();
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        unregisterReceiver(myBroadcastReceiver);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -238,4 +255,50 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             //displayAddressOutput();
         }
     }
+
+    private BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            //  todo correct logic here
+            Log.e(TAG, "Hello");
+/*            if (action.equals(ACTION_ENUMERATEDLISET)) {
+                Bundle b = intent.getExtras();
+                for (String key : b.keySet())
+                {
+                    //  Note, documentation for key was wrong for this.  I will get that fixed
+                    Log.v(LOG_TAG, key);
+                }
+                String[] scanner_list = b.getStringArray(KEY_ENUMERATEDSCANNERLIST);
+                String userFriendlyScanners = "";
+                for (int i = 0; i < scanner_list.length; i++)
+                {
+                    userFriendlyScanners += "{" + scanner_list[i] + "} ";
+                }
+                Toast.makeText(getApplicationContext(), userFriendlyScanners, Toast.LENGTH_LONG).show();
+            }
+            else if (action.equals(getResources().getString(R.string.activity_intent_filter_action)))
+            {
+                try {
+                    displayScanResult(intent, "via Broadcast");
+                }
+                catch (Exception e)
+                {
+                    //  Catch if the UI does not exist when we receive the broadcast... this is not designed to be a production app
+                }
+            }
+            else if (action.equals(getResources().getString(R.string.activity_action_from_service)))
+            {
+                try {
+                    displayScanResult(intent, "via Service");
+                }
+                catch (Exception e)
+                {
+                    //  Catch if the UI does not exist when we receive the broadcast... this is not designed to be a production app
+                }
+            }
+*/
+        }
+    };
+
 }
