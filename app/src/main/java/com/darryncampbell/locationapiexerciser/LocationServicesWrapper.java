@@ -23,9 +23,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
@@ -97,13 +99,28 @@ public class LocationServicesWrapper  implements
         else
             ui.UpdateUIApplicationServicesAvailable(false);
 
-        //  Start the ACtivity results
+        //  Start the Activity results
         Intent intent = new Intent(context, FetchAddressIntentService.class);
         PendingIntent pi = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
+        final PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
                 mGoogleApiClient,
                 TEN_SECONDS,
                 pi);
+        result.setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (!status.isSuccess())
+                {
+                    //  Something went wrong
+                    Log.w(TAG, "Failed to register for Activity Recognition updates");
+                }
+                else
+                {
+                    //  Everything went OK
+                    Log.i(TAG, "Activity Recognition updates successfully registered for");
+                }
+            }
+        });
     }
 
 

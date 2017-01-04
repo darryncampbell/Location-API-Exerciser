@@ -28,18 +28,23 @@ public class LocationManagerWrapper {
     static final long TEN_SECONDS = 1000 * 10;
     static final long TIME_BETWEEN_GPS_UPDATES = TEN_SECONDS;
     static final long TIME_BETWEEN_NETWORK_UPDATES = TEN_SECONDS;
+    static final long TIME_BETWEEN_CUSTOM_UPDATES = TEN_SECONDS;
 
     Location gpsLocationAosp;
     Location networkLocationAosp;
+    Location customLocationAosp;
     LocationManager locationManager;
     String customProviderName;
     LocationProvider gpsProvider;
     LocationProvider networkProvider;
+    LocationProvider customProvider;
     Context context;
     LocationUI ui;
     LocationListener gpsListener;
     LocationListener networkListener;
+    LocationListener customListener;
     Boolean mStarted;
+    Boolean mCustomLocationStarted;
 
     public LocationManagerWrapper(LocationUI ui, Context context, String customProviderName) {
         this.ui = ui;
@@ -48,13 +53,16 @@ public class LocationManagerWrapper {
         this.customProviderName = customProviderName;
         gpsListener = null;
         networkListener = null;
+        customListener = null;
         mStarted = false;
+        mCustomLocationStarted = false;
     }
 
     public void populateUiStatus() {
         TextView txtStatusEnabled = (TextView) ((Activity) context).findViewById(R.id.txtStatusEnabled);
         TextView txtGpsProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtGpsProviderStatus);
         TextView txtNetworkProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtNetworkProviderStatus);
+        TextView txtCustomProviderStatus = (TextView) ((Activity)context).findViewById(R.id.txtCustomProviderStatus);
         TextView txtOtherProviders = (TextView) ((Activity) context).findViewById(R.id.txtOtherProviderStatus);
         TextView txtGPSAddress = (TextView) ((Activity) context).findViewById(R.id.txtGPSAddress);
         TextView txtNetworkAddress = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAddress);
@@ -98,8 +106,21 @@ public class LocationManagerWrapper {
             txtNetworkProviderStatus.setText("Permissions Error");
         }
 
-        //  Custom Provider?
-        //  todo
+        //  Custom Provider
+        try {
+            customProvider = locationManager.getProvider(((Activity)context).getString(R.string.CUSTOM_PROVIDER));
+            if (customProvider == null)
+                txtCustomProviderStatus.setText("No Provider");
+            else {
+                if (locationManager.isProviderEnabled(((Activity)context).getString(R.string.CUSTOM_PROVIDER)))
+                    txtCustomProviderStatus.setText("Enabled");
+                else {
+                    txtCustomProviderStatus.setText("Disabled");
+                }
+            }
+        } catch (SecurityException e) {
+            txtCustomProviderStatus.setText("Permissions Error");
+        }
 
         //  Other Providers
         List<String> allProviders = locationManager.getAllProviders();
@@ -107,7 +128,7 @@ public class LocationManagerWrapper {
         for (int i = 0; i < allProviders.size(); i++) {
             if (!allProviders.get(i).equalsIgnoreCase("gps") &&
                     !allProviders.get(i).equalsIgnoreCase("network") &&
-                    !allProviders.get(i).equalsIgnoreCase(customProviderName)) {
+                    !allProviders.get(i).equalsIgnoreCase(((Activity)context).getString(R.string.CUSTOM_PROVIDER))) {
                 if (!(allProviderStatus.equals("")))
                     allProviderStatus += ", ";
                 allProviderStatus += allProviders.get(i);
@@ -148,6 +169,25 @@ public class LocationManagerWrapper {
             }
             networkListener = null;
         }
+    }
+
+    public void stopCustomProviderListener()
+    {
+        if (!mCustomLocationStarted)
+            return;
+
+        final TextView txtCustomLatitude = (TextView) ((Activity) context).findViewById(R.id.txtCustomLatitude);
+        final TextView txtCustomLongitude = (TextView) ((Activity) context).findViewById(R.id.txtCustomLongitude);
+        final TextView txtCustomAccuracy = (TextView) ((Activity) context).findViewById(R.id.txtCustomAccuracy);
+        mCustomLocationStarted = false;
+        if (customListener != null) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                locationManager.removeUpdates(customListener);
+            }
+            customListener = null;
+        }
+        ui.UpdateUIWithLocation(txtCustomLatitude, txtCustomLongitude, txtCustomAccuracy, null, null);
+
     }
 
     public void startAospLocation() {
@@ -247,6 +287,8 @@ public class LocationManagerWrapper {
             }
         };
 
+
+
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 //  Just to get rid of Eclipse warnings
@@ -274,5 +316,69 @@ public class LocationManagerWrapper {
         }
         else
             ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, null);
+
+    }
+
+    public void startCustomProviderListener()
+    {
+        final TextView txtCustomLatitude = (TextView) ((Activity) context).findViewById(R.id.txtCustomLatitude);
+        final TextView txtCustomLongitude = (TextView) ((Activity) context).findViewById(R.id.txtCustomLongitude);
+        final TextView txtCustomAccuracy = (TextView) ((Activity) context).findViewById(R.id.txtCustomAccuracy);
+        final TextView txtCustomProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtCustomProviderStatus);
+        if (mCustomLocationStarted)
+            return;
+        mCustomLocationStarted = true;
+        customListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                customLocationAosp = location;
+                ui.UpdateUIWithLocation(txtCustomLatitude, txtCustomLongitude, txtCustomAccuracy, null, customLocationAosp);
+                Log.i(TAG, "Received Location from Custom Provider: " + location.toString());
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+                switch (i) {
+                    case LocationProvider.OUT_OF_SERVICE:
+                        txtCustomProviderStatus.setText("Out of Service");
+                        break;
+                    case LocationProvider.TEMPORARILY_UNAVAILABLE:
+                        txtCustomProviderStatus.setText("Temporarily Down");
+                        break;
+                    case LocationProvider.AVAILABLE:
+                        txtCustomProviderStatus.setText("Enabled");
+                        break;
+                    default:
+                        txtCustomProviderStatus.setText("Error");
+                }
+            }
+
+            @Override
+            public void onProviderEnabled(String s)
+            {
+                txtCustomProviderStatus.setText("Enabled");
+                Log.i(TAG, "Custom Provider is Enabled");
+            }
+
+            @Override
+            public void onProviderDisabled(String s)
+            {
+                txtCustomProviderStatus.setText("Disabled");
+                Log.i(TAG, "Custom Provider is disabled");
+            }
+        };
+
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //  Just to get rid of Eclipse warnings
+        }
+        locationManager.requestLocationUpdates(((Activity)context).getString(R.string.CUSTOM_PROVIDER), TIME_BETWEEN_CUSTOM_UPDATES, 0, customListener);
+        Location lastCustomPosition = locationManager.getLastKnownLocation(((Activity)context).getString(R.string.CUSTOM_PROVIDER));
+        if (lastCustomPosition != null)
+        {
+            customLocationAosp = lastCustomPosition;
+            ui.UpdateUIWithLocation(txtCustomLatitude, txtCustomLongitude, txtCustomAccuracy, null, customLocationAosp);
+        }
+
     }
 }

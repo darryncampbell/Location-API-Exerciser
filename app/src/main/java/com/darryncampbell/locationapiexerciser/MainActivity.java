@@ -20,13 +20,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.Serializable;
 import java.text.DecimalFormat;
 
-import static com.darryncampbell.locationapiexerciser.R.styleable.View;
+import static com.darryncampbell.locationapiexerciser.R.id.radioProviderCustom;
+import static com.darryncampbell.locationapiexerciser.R.id.radioProviderGps;
+import static com.darryncampbell.locationapiexerciser.R.id.radioProviderNetwork;
+import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataCanada;
+import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataSpain;
+import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataTasmania;
 
 
 public class MainActivity extends AppCompatActivity implements LocationUI {
@@ -38,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     Location customLocation;
     LocationServicesWrapper locationServicesWrapper = null;
     LocationManagerWrapper locationManagerWrapper = null;
+    CustomProviderWrapper customProviderWrapper = null;
     public AddressResultReceiver mResultReceiver;
 
     @Override
@@ -48,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         setSupportActionBar(toolbar);
         locationManagerWrapper = new LocationManagerWrapper(this, this, customProviderName);
         locationServicesWrapper = new LocationServicesWrapper(this, this);
+        customProviderWrapper = new CustomProviderWrapper(this, this);
         customProviderName = "";
         mResultReceiver = new AddressResultReceiver(new Handler());
         Button settingsRequestHighAccuracy = (Button)findViewById(R.id.btnLocationSettingsForHighAccuracy);
@@ -56,12 +65,81 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             @Override
             public void onClick(View view) {
                 locationServicesWrapper.GetLocationSettings(MainActivity.this, false);
+
             }
         });
         settingsRequestBle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 locationServicesWrapper.GetLocationSettings(MainActivity.this, true);
+            }
+        });
+        final SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+        customProviderIntervalSeek.setMax(59000);
+        customProviderIntervalSeek.setProgress(0);
+        final TextView customProviderIntervalText = (TextView)findViewById(R.id.txtCustomProviderInterval);
+        customProviderIntervalText.setText("" + (customProviderIntervalSeek.getProgress() + 1000));
+        customProviderIntervalSeek.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progressValue, boolean b) {
+                        progressValue = progressValue / 1000;
+                        progressValue = progressValue * 1000;
+                        customProviderIntervalText.setText("" + (progressValue + 1000));
+                    }
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
+                    }
+                }
+        );
+        Button customProviderStart = (Button)findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button)findViewById(R.id.btnCustomProviderStop);
+        customProviderStart.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                RadioGroup radioProviderGroup = (RadioGroup)findViewById(R.id.radioProvider);
+                RadioGroup radioTrackGroup = (RadioGroup)findViewById(R.id.radioTrackData);
+                int selectedProviderId = radioProviderGroup.getCheckedRadioButtonId();
+                int selectedTrackId = radioTrackGroup.getCheckedRadioButtonId();
+                String selectedProvider = "";
+                String selectedTrack = "";
+                switch(selectedProviderId)
+                {
+                    case radioProviderGps:
+                        selectedProvider = LocationManager.GPS_PROVIDER;
+                        break;
+                    case radioProviderNetwork:
+                        selectedProvider = LocationManager.NETWORK_PROVIDER;
+                        break;
+                    case radioProviderCustom:
+                        selectedProvider = getString(R.string.CUSTOM_PROVIDER);
+                        break;
+                }
+                switch (selectedTrackId)
+                {
+                    case radioTrackDataCanada:
+                        selectedTrack = "canada_highway";
+                        break;
+                    case radioTrackDataTasmania:
+                        selectedTrack = "tasmania";
+                        break;
+                    case radioTrackDataSpain:
+                        selectedTrack = "spain";
+                        break;
+                }
+                int chosenInterval = (customProviderIntervalSeek.getProgress() + 1000);
+                customProviderWrapper.userStarted(selectedProvider, selectedTrack, chosenInterval);
+            }
+        });
+        customProviderStop.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                customProviderWrapper.userStopped();
             }
         });
 
@@ -121,8 +199,8 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             locationManagerWrapper.populateUiStatus();
             locationServicesWrapper.onStart();
             locationManagerWrapper.startAospLocation();
+            customProviderWrapper.onStart();
         }
-
     }
 
     @Override
@@ -130,6 +208,8 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         super.onStop();
         locationServicesWrapper.onStop();
         locationManagerWrapper.stopAospLocation();
+        locationManagerWrapper.stopCustomProviderListener();
+        customProviderWrapper.onStop();
     }
 
     @Override
@@ -203,14 +283,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             latitude.setText("Unavailable");
             longitude.setText("Unavailable");
             accuracy.setText("Unavailable");
-            address.setText("Unavailable");
+            if (address != null)
+                address.setText("Unavailable");
         }
         else
         {
             latitude.setText(new DecimalFormat("#.#######").format(theLocation.getLatitude()));
             longitude.setText(new DecimalFormat("#.#######").format(theLocation.getLongitude()));
             accuracy.setText(new DecimalFormat("#.#######").format(theLocation.getAccuracy()));
-            convertLocationToAddress(theLocation);
+            if (address != null)
+                convertLocationToAddress(theLocation);
         }
     }
 
@@ -234,6 +316,86 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mResultReceiver);
         intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, location);
         startService(intent);
+    }
+
+    @Override
+    public void UpdateUIWithCustomProviderEnabled(Boolean isEnabled) {
+        TextView customProviderStatusTxt = (TextView)findViewById(R.id.txtCustomProviderStatus);
+        TextView customProviderLongitude = (TextView)findViewById(R.id.txtCustomLongitude);
+        TextView customProviderLatitude = (TextView)findViewById(R.id.txtCustomLatitude);
+        TextView customProviderAccuracy = (TextView)findViewById(R.id.txtCustomAccuracy);
+        Button customProviderStart = (Button)findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button)findViewById(R.id.btnCustomProviderStop);
+        RadioButton radioGpsProvider = (RadioButton) findViewById(R.id.radioProviderGps);
+        RadioButton radioNetworkProvider = (RadioButton) findViewById(R.id.radioProviderNetwork);
+        RadioButton radioCustomProvider = (RadioButton) findViewById(R.id.radioProviderCustom);
+        RadioButton radioTrackDataCanada = (RadioButton)findViewById(R.id.radioTrackDataCanada);
+        RadioButton radioTrackDataTasmania = (RadioButton)findViewById(R.id.radioTrackDataTasmania);
+        RadioButton radioTrackDataSpain = (RadioButton)findViewById(R.id.radioTrackDataSpain);
+        SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+
+        if (isEnabled)
+        {
+            customProviderStatusTxt.setText("Enabled");
+        }
+        else
+        {
+            customProviderStatusTxt.setText("Disabled");
+            customProviderLongitude.setText("Unavailable");
+            customProviderLatitude.setText("Unavailable");
+            customProviderAccuracy.setText("Unavailable");
+            customProviderStart.setEnabled(false);
+            customProviderStop.setEnabled(false);
+            radioGpsProvider.setEnabled(false);
+            radioNetworkProvider.setEnabled(false);
+            radioCustomProvider.setEnabled(false);
+            radioTrackDataCanada.setEnabled(false);
+            radioTrackDataTasmania.setEnabled(false);
+            radioTrackDataSpain.setEnabled(false);
+            customProviderIntervalSeek.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void UpdateUIWithCustomProviderRunning(Boolean isRunning) {
+        Button customProviderStart = (Button) findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button) findViewById(R.id.btnCustomProviderStop);
+        TextView customProviderStatusTxt = (TextView)findViewById(R.id.txtCustomProviderStatus);
+        RadioButton radioGpsProvider = (RadioButton) findViewById(R.id.radioProviderGps);
+        RadioButton radioNetworkProvider = (RadioButton) findViewById(R.id.radioProviderNetwork);
+        RadioButton radioCustomProvider = (RadioButton) findViewById(R.id.radioProviderCustom);
+        RadioButton radioTrackDataCanada = (RadioButton)findViewById(R.id.radioTrackDataCanada);
+        RadioButton radioTrackDataTasmania = (RadioButton)findViewById(R.id.radioTrackDataTasmania);
+        RadioButton radioTrackDataSpain = (RadioButton)findViewById(R.id.radioTrackDataSpain);
+        SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+
+        if (isRunning)
+        {
+            Log.i(TAG, "Custom provider has reported its state as running");
+            customProviderStart.setEnabled(false);
+            customProviderStop.setEnabled(true);
+            radioGpsProvider.setEnabled(false);
+            radioNetworkProvider.setEnabled(false);
+            radioCustomProvider.setEnabled(false);
+            radioTrackDataCanada.setEnabled(false);
+            radioTrackDataTasmania.setEnabled(false);
+            radioTrackDataSpain.setEnabled(false);
+            customProviderIntervalSeek.setEnabled(false);
+            customProviderStatusTxt.setText("Running");
+            locationManagerWrapper.startCustomProviderListener();
+        }
+        else
+        {
+            Log.i(TAG, "Custom provider has reported its state as stopped");
+            customProviderStart.setEnabled(true);
+            customProviderStop.setEnabled(false);
+            radioTrackDataCanada.setEnabled(true);
+            radioTrackDataTasmania.setEnabled(true);
+            radioTrackDataSpain.setEnabled(true);
+            customProviderIntervalSeek.setEnabled(true);
+            customProviderStatusTxt.setText("Stopped");
+            locationManagerWrapper.stopCustomProviderListener();
+        }
     }
 
     class AddressResultReceiver extends ResultReceiver {

@@ -5,8 +5,15 @@
     <string name="invalid_lat_long_used">invalid lat / long</string>
     <string name="no_address_found">NO location found</string>
     <string name="address_found">Geocode location found</string>
+    <string name="CUSTOM_PROVIDER">CustomLocationDCC</string>
 
-    <!--  Constraints -->
+    <!--  Radio Buttons -->
+    <string name="radio_gps">Report as GPS Provider</string>
+    <string name="radio_network">Report as Network Provider</string>
+    <string name="radio_custom">Report as Custom Provider</string>
+    <string name="radio_track_data_canada">Canadian Highway Drive</string>
+    <string name="radio_track_data_tasmania">Tasmanian Trek</string>
+    <string name="radio_track_data_spain">Spanish Trek</string>
 
     <!-- Activity detection strings -->
     <string name="in_vehicle">In a vehicle</string>

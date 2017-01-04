@@ -124,7 +124,7 @@
         android:textStyle="bold"/>
 
     <TextView
-        android:text="Unknown"
+        android:text="Not Started"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txtCustomProviderStatus"
@@ -306,39 +306,81 @@
             />
 
         <TextView
-        android:text="Custom Provider"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblCustomPosition"
-        android:layout_below="@+id/lblGpsAccuracy"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:textSize="18sp"
+            android:text="Custom Longitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblCustomLongitude"
+            android:layout_below="@+id/lblGpsAccuracy"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
             android:textStyle="bold"/>
 
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtCustomPosition"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblCustomPosition"
-        android:layout_alignBottom="@+id/lblCustomPosition"
-        android:layout_alignParentEnd="true" />
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtCustomLongitude"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblCustomLongitude"
+            android:layout_alignBottom="@+id/lblCustomLongitude"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Custom Latitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblCustomLatitude"
+            android:layout_below="@+id/lblCustomLongitude"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtCustomLatitude"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblCustomLatitude"
+            android:layout_alignBottom="@+id/lblCustomLatitude"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Custom Accuracy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblCustomAccuracy"
+            android:layout_below="@+id/lblCustomLatitude"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtCustomAccuracy"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblCustomAccuracy"
+            android:layout_alignBottom="@+id/lblCustomAccuracy"
+            android:layout_alignParentEnd="true" />
 
         <View
             android:layout_width="fill_parent"
             android:layout_height="1dp"
             android:background="@color/zebraBackground"
             android:layout_marginTop="5dp"
-            android:layout_below="@+id/lblCustomPosition"
+            android:layout_below="@+id/lblCustomAccuracy"
             />
 
         <TextView
         android:text="Position (GMS Only)"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/lblCustomPosition"
+        android:layout_below="@+id/lblCustomAccuracy"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:id="@+id/headingPositionGMS" />
@@ -567,7 +609,156 @@
         android:layout_alignBottom="@+id/lblFusedAddress"
         android:layout_alignParentEnd="true" />
 
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@color/zebraBackground"
+            android:layout_marginTop="18dp"
+            android:layout_below="@+id/txtFusedAddress"
+            />
+
+        <TextView
+            android:text="Custom Provider Settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txtFusedAddress"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="18dp"
+            android:id="@+id/headingCustomProviderSettings" />
+
+        <TextView
+            android:text="You need to set this application as the 'mock location app' (Settings --> Developer Options).  Custom providers can confuse devices or Google services once set, it is recommended to reboot your device after disabling a mock location provider or if the device gets confused."
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/headingCustomProviderSettings"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="14sp"
+            android:id="@+id/customProviderExplanation" />
+
+        <TextView
+            android:text="Provider Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/customProviderExplanation"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:id="@+id/headingCustomProviderProvider" />
+
+        <RadioGroup
+            android:id="@+id/radioProvider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/headingCustomProviderProvider">
+
+            <RadioButton
+                android:id="@+id/radioProviderGps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_gps"
+                 />
+
+            <RadioButton
+                android:id="@+id/radioProviderNetwork"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_network" />
+
+            <RadioButton
+                android:id="@+id/radioProviderCustom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_custom"
+                android:checked="true"/>
+
+        </RadioGroup>
+
+        <TextView
+            android:text="Mimic Locations From"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/radioProvider"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:id="@+id/headingCustomProviderMimicLocationsFrom" />
+
+        <RadioGroup
+            android:id="@+id/radioTrackData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/headingCustomProviderMimicLocationsFrom">
+
+            <RadioButton
+                android:id="@+id/radioTrackDataCanada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_track_data_canada"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radioTrackDataTasmania"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_track_data_tasmania" />
+
+            <RadioButton
+                android:id="@+id/radioTrackDataSpain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/radio_track_data_spain"/>
+
+        </RadioGroup>
+
+        <TextView
+            android:text="Interval Between Location Updates (ms)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/radioTrackData"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:id="@+id/headingCustomProviderInterval" />
+
+        <SeekBar
+            android:id="@+id/seekCustomProviderInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/headingCustomProviderInterval"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"/>
+
+        <TextView
+            android:text="interval"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtCustomProviderInterval"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/seekCustomProviderInterval"
+            android:layout_alignBottom="@+id/seekCustomProviderInterval"
+            android:layout_alignParentEnd="true" />
+
+        <Button
+            android:text="Start Reporting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnCustomProviderStart"
+            android:textSize="14sp"
+            android:layout_below="@+id/txtCustomProviderInterval"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            />
+
+        <Button
+            android:text="Stop Reporting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnCustomProviderStop"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/btnCustomProviderStart"
+            android:layout_alignBottom="@+id/btnCustomProviderStart"
+            android:layout_alignParentEnd="true"
+            android:enabled="false"/>
 
 
-</RelativeLayout>
+
+    </RelativeLayout>
 </ScrollView>
