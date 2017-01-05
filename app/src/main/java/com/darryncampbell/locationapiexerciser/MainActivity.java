@@ -1,29 +1,52 @@
 package com.darryncampbell.locationapiexerciser;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
+import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.DecimalFormat;
 
+import static com.darryncampbell.locationapiexerciser.R.id.radioProviderCustom;
+import static com.darryncampbell.locationapiexerciser.R.id.radioProviderGps;
+import static com.darryncampbell.locationapiexerciser.R.id.radioProviderNetwork;
+import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataCanada;
+import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataSpain;
+import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataTasmania;
+
 
 public class MainActivity extends AppCompatActivity implements LocationUI {
 
     public static final String TAG = "LOCATION API EXERCISER";
+    public static final int LOCATION_SETTINGS_PERMISSION_REQUEST = 1;
     boolean locationPermission = false;
     String customProviderName;
     Location customLocation;
     LocationServicesWrapper locationServicesWrapper = null;
     LocationManagerWrapper locationManagerWrapper = null;
+    CustomProviderWrapper customProviderWrapper = null;
+    public AddressResultReceiver mResultReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +56,97 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         setSupportActionBar(toolbar);
         locationManagerWrapper = new LocationManagerWrapper(this, this, customProviderName);
         locationServicesWrapper = new LocationServicesWrapper(this, this);
+        customProviderWrapper = new CustomProviderWrapper(this, this);
         customProviderName = "";
+        mResultReceiver = new AddressResultReceiver(new Handler());
+        Button settingsRequestHighAccuracy = (Button)findViewById(R.id.btnLocationSettingsForHighAccuracy);
+        Button settingsRequestBle = (Button)findViewById(R.id.btnLocationSettingsForBle);
+        settingsRequestHighAccuracy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                locationServicesWrapper.GetLocationSettings(MainActivity.this, false);
+
+            }
+        });
+        settingsRequestBle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                locationServicesWrapper.GetLocationSettings(MainActivity.this, true);
+            }
+        });
+        final SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+        customProviderIntervalSeek.setMax(59000);
+        customProviderIntervalSeek.setProgress(0);
+        final TextView customProviderIntervalText = (TextView)findViewById(R.id.txtCustomProviderInterval);
+        customProviderIntervalText.setText("" + (customProviderIntervalSeek.getProgress() + 1000));
+        customProviderIntervalSeek.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progressValue, boolean b) {
+                        progressValue = progressValue / 1000;
+                        progressValue = progressValue * 1000;
+                        customProviderIntervalText.setText("" + (progressValue + 1000));
+                    }
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
+                    }
+                }
+        );
+        Button customProviderStart = (Button)findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button)findViewById(R.id.btnCustomProviderStop);
+        customProviderStart.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                RadioGroup radioProviderGroup = (RadioGroup)findViewById(R.id.radioProvider);
+                RadioGroup radioTrackGroup = (RadioGroup)findViewById(R.id.radioTrackData);
+                int selectedProviderId = radioProviderGroup.getCheckedRadioButtonId();
+                int selectedTrackId = radioTrackGroup.getCheckedRadioButtonId();
+                String selectedProvider = "";
+                String selectedTrack = "";
+                switch(selectedProviderId)
+                {
+                    case radioProviderGps:
+                        selectedProvider = LocationManager.GPS_PROVIDER;
+                        break;
+                    case radioProviderNetwork:
+                        selectedProvider = LocationManager.NETWORK_PROVIDER;
+                        break;
+                    case radioProviderCustom:
+                        selectedProvider = getString(R.string.CUSTOM_PROVIDER);
+                        break;
+                }
+                switch (selectedTrackId)
+                {
+                    case radioTrackDataCanada:
+                        selectedTrack = "canada_highway";
+                        break;
+                    case radioTrackDataTasmania:
+                        selectedTrack = "tasmania";
+                        break;
+                    case radioTrackDataSpain:
+                        selectedTrack = "spain";
+                        break;
+                }
+                int chosenInterval = (customProviderIntervalSeek.getProgress() + 1000);
+                customProviderWrapper.userStarted(selectedProvider, selectedTrack, chosenInterval);
+            }
+        });
+        customProviderStop.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                customProviderWrapper.userStopped();
+            }
+        });
+
+        //  Register the broadcast receiver for activity recognition
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(this.getResources().getString(R.string.Activity_Broadcast_Action));
+        registerReceiver(myBroadcastReceiver, filter);
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -46,12 +159,32 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == LOCATION_SETTINGS_PERMISSION_REQUEST)
+        {
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    Log.i(TAG, "User agreed to make required location settings changes.");
+                    Toast.makeText(this, "User agreed to change location settings", Toast.LENGTH_LONG).show();
+                    break;
+                case Activity.RESULT_CANCELED:
+                    Log.i(TAG, "User chose not to make required location settings changes.");
+                    Toast.makeText(this, "User did NOT agree to change location settings", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
 
     }
+
 
     @Override
     protected void onStart() {
@@ -66,8 +199,8 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             locationManagerWrapper.populateUiStatus();
             locationServicesWrapper.onStart();
             locationManagerWrapper.startAospLocation();
+            customProviderWrapper.onStart();
         }
-
     }
 
     @Override
@@ -75,8 +208,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         super.onStop();
         locationServicesWrapper.onStop();
         locationManagerWrapper.stopAospLocation();
+        locationManagerWrapper.stopCustomProviderListener();
+        customProviderWrapper.onStop();
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        unregisterReceiver(myBroadcastReceiver);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -131,27 +272,176 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         final TextView txtFusedLatitude = (TextView) findViewById(R.id.txtFusedLatitude);
         final TextView txtFusedLongitude = (TextView) findViewById(R.id.txtFusedLongitude);
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
-        UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, location);
+        final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
+        UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
     }
 
-    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, Location theLocation)
+    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, TextView address, Location theLocation)
     {
         if (theLocation == null)
         {
             latitude.setText("Unavailable");
             longitude.setText("Unavailable");
             accuracy.setText("Unavailable");
+            if (address != null)
+                address.setText("Unavailable");
         }
         else
         {
             latitude.setText(new DecimalFormat("#.#######").format(theLocation.getLatitude()));
             longitude.setText(new DecimalFormat("#.#######").format(theLocation.getLongitude()));
             accuracy.setText(new DecimalFormat("#.#######").format(theLocation.getAccuracy()));
+            if (address != null)
+                convertLocationToAddress(theLocation);
         }
     }
 
-    public void UpdateUIApplicationServicesAvailable(String isAvailable) {
+    public void UpdateUIApplicationServicesAvailable(Boolean isAvailable) {
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
-        txtLocationServicesAvailable.setText(isAvailable);
+        if (isAvailable)
+        {
+            txtLocationServicesAvailable.setText("Yes");
+        }
+        else
+        {
+            txtLocationServicesAvailable.setText("No");
+            UpdateUIWithFusedLocation(null);
+            TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+            activityRecognitionTxt.setText("No Location Services");
+        }
     }
+
+    public void convertLocationToAddress(Location location) {
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, location);
+        startService(intent);
+    }
+
+    @Override
+    public void UpdateUIWithCustomProviderEnabled(Boolean isEnabled) {
+        TextView customProviderStatusTxt = (TextView)findViewById(R.id.txtCustomProviderStatus);
+        TextView customProviderLongitude = (TextView)findViewById(R.id.txtCustomLongitude);
+        TextView customProviderLatitude = (TextView)findViewById(R.id.txtCustomLatitude);
+        TextView customProviderAccuracy = (TextView)findViewById(R.id.txtCustomAccuracy);
+        Button customProviderStart = (Button)findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button)findViewById(R.id.btnCustomProviderStop);
+        RadioButton radioGpsProvider = (RadioButton) findViewById(R.id.radioProviderGps);
+        RadioButton radioNetworkProvider = (RadioButton) findViewById(R.id.radioProviderNetwork);
+        RadioButton radioCustomProvider = (RadioButton) findViewById(R.id.radioProviderCustom);
+        RadioButton radioTrackDataCanada = (RadioButton)findViewById(R.id.radioTrackDataCanada);
+        RadioButton radioTrackDataTasmania = (RadioButton)findViewById(R.id.radioTrackDataTasmania);
+        RadioButton radioTrackDataSpain = (RadioButton)findViewById(R.id.radioTrackDataSpain);
+        SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+
+        if (isEnabled)
+        {
+            customProviderStatusTxt.setText("Enabled");
+        }
+        else
+        {
+            customProviderStatusTxt.setText("Disabled");
+            customProviderLongitude.setText("Unavailable");
+            customProviderLatitude.setText("Unavailable");
+            customProviderAccuracy.setText("Unavailable");
+            customProviderStart.setEnabled(false);
+            customProviderStop.setEnabled(false);
+            radioGpsProvider.setEnabled(false);
+            radioNetworkProvider.setEnabled(false);
+            radioCustomProvider.setEnabled(false);
+            radioTrackDataCanada.setEnabled(false);
+            radioTrackDataTasmania.setEnabled(false);
+            radioTrackDataSpain.setEnabled(false);
+            customProviderIntervalSeek.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void UpdateUIWithCustomProviderRunning(Boolean isRunning) {
+        Button customProviderStart = (Button) findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button) findViewById(R.id.btnCustomProviderStop);
+        TextView customProviderStatusTxt = (TextView)findViewById(R.id.txtCustomProviderStatus);
+        RadioButton radioGpsProvider = (RadioButton) findViewById(R.id.radioProviderGps);
+        RadioButton radioNetworkProvider = (RadioButton) findViewById(R.id.radioProviderNetwork);
+        RadioButton radioCustomProvider = (RadioButton) findViewById(R.id.radioProviderCustom);
+        RadioButton radioTrackDataCanada = (RadioButton)findViewById(R.id.radioTrackDataCanada);
+        RadioButton radioTrackDataTasmania = (RadioButton)findViewById(R.id.radioTrackDataTasmania);
+        RadioButton radioTrackDataSpain = (RadioButton)findViewById(R.id.radioTrackDataSpain);
+        SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+
+        if (isRunning)
+        {
+            Log.i(TAG, "Custom provider has reported its state as running");
+            customProviderStart.setEnabled(false);
+            customProviderStop.setEnabled(true);
+            radioGpsProvider.setEnabled(false);
+            radioNetworkProvider.setEnabled(false);
+            radioCustomProvider.setEnabled(false);
+            radioTrackDataCanada.setEnabled(false);
+            radioTrackDataTasmania.setEnabled(false);
+            radioTrackDataSpain.setEnabled(false);
+            customProviderIntervalSeek.setEnabled(false);
+            customProviderStatusTxt.setText("Running");
+            locationManagerWrapper.startCustomProviderListener();
+        }
+        else
+        {
+            Log.i(TAG, "Custom provider has reported its state as stopped");
+            customProviderStart.setEnabled(true);
+            customProviderStop.setEnabled(false);
+            radioTrackDataCanada.setEnabled(true);
+            radioTrackDataTasmania.setEnabled(true);
+            radioTrackDataSpain.setEnabled(true);
+            customProviderIntervalSeek.setEnabled(true);
+            customProviderStatusTxt.setText("Stopped");
+            locationManagerWrapper.stopCustomProviderListener();
+        }
+    }
+
+    class AddressResultReceiver extends ResultReceiver {
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            final TextView txtGPSAddress = (TextView) findViewById(R.id.txtGPSAddress);
+            final TextView txtNetworkAddress = (TextView) findViewById(R.id.txtNetworkAddress);
+            final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
+
+            // Display the address string
+            // or an error message sent from the intent service.
+            String addressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
+            String provider = resultData.getString(FetchAddressIntentService.Constants.LOCATION_PROVIDER);
+            Log.i(TAG, "Received decoded address from " + provider + ": " + addressOutput);
+            if (provider.equals(LocationManager.GPS_PROVIDER))
+            {
+                txtGPSAddress.setText(addressOutput);
+            }
+            else if (provider.equals(LocationManager.NETWORK_PROVIDER))
+            {
+                txtNetworkAddress.setText(addressOutput);
+            }
+            else if (provider.equalsIgnoreCase("fused"))
+            {
+                txtFusedAddress.setText(addressOutput);
+            }
+            else
+            {
+                //  Unrecognised source
+                Log.e(TAG, "Unrecognised provider");
+            }
+        }
+    }
+
+    //  Broadcast receiver for the address
+    private BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String actionText = intent.getStringExtra(getResources().getString(R.string.Activity_Recognition_Action_Text));
+            TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+            activityRecognitionTxt.setText(actionText);
+        }
+    };
+
 }

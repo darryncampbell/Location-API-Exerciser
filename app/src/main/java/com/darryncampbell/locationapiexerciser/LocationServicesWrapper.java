@@ -4,23 +4,46 @@ package com.darryncampbell.locationapiexerciser;
  * Created by darry on 30/12/2016.
  */
 
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 
 public class LocationServicesWrapper  implements
         ConnectionCallbacks, OnConnectionFailedListener, com.google.android.gms.location.LocationListener{
 
     public static final String TAG = "LOCATION API EXERCISER";
+    static final long THIRTY_SECONDS = 1000 * 30;
+    static final long FIVE_SECONDS = 1000 * 5;
+    static final long TEN_SECONDS = 1000 * 10;
+    static final long TIME_BETWEEN_GMS_UPDATES = THIRTY_SECONDS;
 
     protected GoogleApiClient mGoogleApiClient;
     Location fusedLocation;
@@ -40,6 +63,7 @@ public class LocationServicesWrapper  implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .addApi(ActivityRecognition.API)
                 .build();
     }
 
@@ -58,39 +82,59 @@ public class LocationServicesWrapper  implements
 
     public void onStop()
     {
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
     }
 
-    /**
-     * Runs when a GoogleApiClient object successfully connects.
-     */
     @Override
     public void onConnected(Bundle connectionHint) {
+        Log.i(TAG, "Location Services connected");
         fusedLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (fusedLocation != null) {
-            ui.UpdateUIApplicationServicesAvailable("Yes");
+            ui.UpdateUIApplicationServicesAvailable(true);
             ui.UpdateUIWithFusedLocation(fusedLocation);
             startGMSLocation();
         }
         else
-            ui.UpdateUIApplicationServicesAvailable("No");
+            ui.UpdateUIApplicationServicesAvailable(false);
+
+        //  Start the Activity results
+        Intent intent = new Intent(context, FetchAddressIntentService.class);
+        PendingIntent pi = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        final PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
+                mGoogleApiClient,
+                TEN_SECONDS,
+                pi);
+        result.setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (!status.isSuccess())
+                {
+                    //  Something went wrong
+                    Log.w(TAG, "Failed to register for Activity Recognition updates");
+                }
+                else
+                {
+                    //  Everything went OK
+                    Log.i(TAG, "Activity Recognition updates successfully registered for");
+                }
+            }
+        });
     }
+
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-        // onConnectionFailed.
+        ui.UpdateUIApplicationServicesAvailable(false);
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
 
     @Override
     public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
         Log.i(TAG, "Connection suspended");
+        ui.UpdateUIApplicationServicesAvailable(false);
         mGoogleApiClient.connect();
     }
 
@@ -100,12 +144,11 @@ public class LocationServicesWrapper  implements
             return;
 
         pollingGMS = true;
-        final long THIRTY_SECONDS = 1000 * 30;
-        final long FIVE_SECONDS = 1000 * 5;
+
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(THIRTY_SECONDS);
-        locationRequest.setFastestInterval(FIVE_SECONDS);
+        locationRequest.setInterval(TIME_BETWEEN_GMS_UPDATES);
+        locationRequest.setFastestInterval(TEN_SECONDS);
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
     }
 
@@ -114,6 +157,63 @@ public class LocationServicesWrapper  implements
         //  GMS Location Listener
         fusedLocation = location;
         ui.UpdateUIWithFusedLocation(fusedLocation);
+        Log.i(TAG, "Received location from Google Services: " + location.toString());
     }
 
+    public void GetLocationSettings(final Activity theActivity, Boolean needBle)
+    {
+        //  Check we are conneted to Google location services
+        if (!mGoogleApiClient.isConnected())
+        {
+            Toast.makeText(theActivity, "Not connected to Google Location Services", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(TEN_SECONDS);
+        mLocationRequest.setFastestInterval(FIVE_SECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        builder.setNeedBle(needBle);
+        builder.setAlwaysShow(true);
+        final PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
+                        builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location requests.
+                        Toast.makeText(theActivity, "Location Settings CORRECT", Toast.LENGTH_SHORT).show();
+                        Log.i(TAG, "Location Settings returned Success");
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied, but this can be fixed
+                        // by showing the user a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            Toast.makeText(theActivity, "Need additional permissions", Toast.LENGTH_SHORT).show();
+                            status.startResolutionForResult(
+                                    theActivity,
+                                    MainActivity.LOCATION_SETTINGS_PERMISSION_REQUEST);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+
+                        Log.w(TAG, "Location Settings returned Resolution Required.");
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way
+                        // to fix the settings so we won't show the dialog.
+                        Toast.makeText(theActivity, "Location Settings CANNOT be satisfied", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "Location Settings returned Change Unavailable");
+                        break;
+                }
+            }
+        });
+    }
 }
