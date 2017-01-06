@@ -537,77 +537,190 @@
             />
 
         <TextView
-            android:text="Address Resolution (GMS Only)"
+            android:text="Geofencing via Location Manager (AOSP / GMS)"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/lblActivityRecognition"
             android:layout_alignParentStart="true"
             android:layout_marginTop="10dp"
+            android:id="@+id/headingGeofencingLocationManager" />
+
+        <TextView
+        android:text="20m Circle around"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGeofencingViaLocationManager"
+        android:layout_below="@+id/headingGeofencingLocationManager"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+        <TextView
+            android:text="Not Available"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtGeofencingViaLocationManager"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblGeofencingViaLocationManager"
+            android:layout_alignBottom="@+id/lblGeofencingViaLocationManager"
+            android:layout_alignParentEnd="true" />
+
+        <Button
+            android:text="Add Geofence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnGeofencingViaLocationManagerStart"
+            android:textSize="14sp"
+            android:layout_below="@+id/txtGeofencingViaLocationManager"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            />
+
+        <Button
+            android:text="Remove Geofence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnGeofencingViaLocationManagerStop"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/btnGeofencingViaLocationManagerStart"
+            android:layout_alignBottom="@+id/btnGeofencingViaLocationManagerStart"
+            android:layout_alignParentEnd="true"/>
+
+
+        <TextView
+            android:text="Geofencing via Location Services (GMS)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btnGeofencingViaLocationManagerStart"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:id="@+id/headingGeofencingLocationServices" />
+
+
+        <TextView
+        android:text="20m Circle around"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGeofencingViaLocationServices"
+        android:layout_below="@+id/headingGeofencingLocationServices"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+        <TextView
+            android:text="Not Available"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtGeofencingViaLocationServices"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblGeofencingViaLocationServices"
+            android:layout_alignBottom="@+id/lblGeofencingViaLocationServices"
+            android:layout_alignParentEnd="true" />
+
+        <Button
+            android:text="Add Geofence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnGeofencingViaLocationServicesStart"
+            android:textSize="14sp"
+            android:layout_below="@+id/txtGeofencingViaLocationServices"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            />
+
+        <Button
+            android:text="Remove Geofence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnGeofencingViaLocationServicesStop"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/btnGeofencingViaLocationServicesStart"
+            android:layout_alignBottom="@+id/btnGeofencingViaLocationServicesStart"
+            android:layout_alignParentEnd="true"/>
+
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@color/zebraBackground"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/btnGeofencingViaLocationServicesStart"
+            />
+
+        <TextView
+            android:text="Address Resolution (GMS Only)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btnGeofencingViaLocationServicesStart"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
             android:id="@+id/headingAddressResolution" />
 
         <TextView
-        android:text="GPS Address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblGPSAddress"
-        android:layout_below="@+id/headingAddressResolution"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="18dp"
-        android:textSize="18sp"
+            android:text="GPS Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblGPSAddress"
+            android:layout_below="@+id/headingAddressResolution"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="18dp"
+            android:textSize="18sp"
             android:textStyle="bold"/>
 
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtGPSAddress"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblGPSAddress"
-        android:layout_alignBottom="@+id/lblGPSAddress"
-        android:layout_alignParentEnd="true" />
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtGPSAddress"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblGPSAddress"
+            android:layout_alignBottom="@+id/lblGPSAddress"
+            android:layout_alignParentEnd="true" />
 
 
-    <TextView
-        android:text="Network Address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblNetworkAddress"
-        android:layout_below="@+id/txtGPSAddress"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="18dp"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
+        <TextView
+            android:text="Network Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblNetworkAddress"
+            android:layout_below="@+id/txtGPSAddress"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="18dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
 
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtNetworkAddress"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblNetworkAddress"
-        android:layout_alignBottom="@+id/lblNetworkAddress"
-        android:layout_alignParentEnd="true" />
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtNetworkAddress"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblNetworkAddress"
+            android:layout_alignBottom="@+id/lblNetworkAddress"
+            android:layout_alignParentEnd="true" />
 
-    <TextView
-        android:text="Fused Address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblFusedAddress"
-        android:layout_below="@+id/txtNetworkAddress"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="18dp"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
+        <TextView
+            android:text="Fused Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblFusedAddress"
+            android:layout_below="@+id/txtNetworkAddress"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="18dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
 
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtFusedAddress"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblFusedAddress"
-        android:layout_alignBottom="@+id/lblFusedAddress"
-        android:layout_alignParentEnd="true" />
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtFusedAddress"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblFusedAddress"
+            android:layout_alignBottom="@+id/lblFusedAddress"
+            android:layout_alignParentEnd="true" />
 
         <View
             android:layout_width="fill_parent"

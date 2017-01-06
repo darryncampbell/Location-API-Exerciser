@@ -40,85 +40,56 @@ public class FetchAddressIntentService extends IntentService {
 
             Location location = intent.getParcelableExtra(
                     Constants.LOCATION_DATA_EXTRA);
-            if (location != null)
-            {
-                //  Only Geocoded addresses will have a location
-                String provider = location.getProvider();
-                if (!Geocoder.isPresent()) {
-                    deliverResultToReceiver(Constants.FAILURE_RESULT, provider, "No Location Services");
-                    return;
-                }
-                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
-                List<Address> addresses = null;
-
-                try {
-                    addresses = geocoder.getFromLocation(
-                            location.getLatitude(),
-                            location.getLongitude(),
-                            // In this sample, get just a single address.
-                            1);
-                } catch (IOException ioException) {
-                    // Catch network or other I/O problems.
-                    errorMessage = getString(R.string.service_not_available);
-                    Log.e(TAG, errorMessage, ioException);
-                } catch (IllegalArgumentException illegalArgumentException) {
-                    // Catch invalid latitude or longitude values.
-                    errorMessage = getString(R.string.invalid_lat_long_used);
-                    Log.e(TAG, errorMessage + ". " +
-                            "Latitude = " + location.getLatitude() +
-                            ", Longitude = " +
-                            location.getLongitude(), illegalArgumentException);
-                }
-
-                // Handle case where no address was found.
-                if (addresses == null || addresses.size() == 0) {
-                    if (errorMessage.isEmpty()) {
-                        errorMessage = getString(R.string.no_address_found);
-                        Log.e(TAG, errorMessage);
-                    }
-                    deliverResultToReceiver(Constants.FAILURE_RESULT, provider, errorMessage);
-                } else {
-                    Address address = addresses.get(0);
-                    ArrayList<String> addressFragments = new ArrayList<String>();
-
-                    // Fetch the address lines using getAddressLine,
-                    // join them, and send them to the thread.
-                    for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
-                        addressFragments.add(address.getAddressLine(i));
-                    }
-                    deliverResultToReceiver(Constants.SUCCESS_RESULT, provider,
-                            TextUtils.join(System.getProperty("line.separator"),
-                                    addressFragments));
-                }
+            String provider = location.getProvider();
+            if (!Geocoder.isPresent()) {
+                deliverResultToReceiver(Constants.FAILURE_RESULT, provider, "No Location Services");
+                return;
             }
-            else
-            {
-                //  Activity Recognition
-                ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
-                if (result == null)
-                    return;
-                ArrayList<DetectedActivity> detectedActivities = (ArrayList) result.getProbableActivities();
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
-                String type = "";
-                float confidence = 0;
+            List<Address> addresses = null;
 
-                // Select the most confidence type
-                for (DetectedActivity da : detectedActivities) {
-                    if (da.getConfidence() > confidence) {
-                        confidence = da.getConfidence();
-                        type = getActivityString(
-                                getApplicationContext(),
-                                da.getType());
-                    }
-                }
-                String activityText = "" + type + " [" + String.valueOf(confidence) + "%]";
-                Log.i(TAG, "Current Activity: " + activityText);
-                Intent broadcastIntent = new Intent();
-                broadcastIntent.setAction(getResources().getString(R.string.Activity_Broadcast_Action));
-                broadcastIntent.putExtra(getResources().getString(R.string.Activity_Recognition_Action_Text), activityText);
-                sendBroadcast(broadcastIntent);
+            try {
+                addresses = geocoder.getFromLocation(
+                        location.getLatitude(),
+                        location.getLongitude(),
+                        // In this sample, get just a single address.
+                        1);
+            } catch (IOException ioException) {
+                // Catch network or other I/O problems.
+                errorMessage = getString(R.string.service_not_available);
+                Log.e(TAG, errorMessage, ioException);
+            } catch (IllegalArgumentException illegalArgumentException) {
+                // Catch invalid latitude or longitude values.
+                errorMessage = getString(R.string.invalid_lat_long_used);
+                Log.e(TAG, errorMessage + ". " +
+                        "Latitude = " + location.getLatitude() +
+                        ", Longitude = " +
+                        location.getLongitude(), illegalArgumentException);
             }
+
+            // Handle case where no address was found.
+            if (addresses == null || addresses.size() == 0) {
+                if (errorMessage.isEmpty()) {
+                    errorMessage = getString(R.string.no_address_found);
+                    Log.e(TAG, errorMessage);
+                }
+                deliverResultToReceiver(Constants.FAILURE_RESULT, provider, errorMessage);
+            } else {
+                Address address = addresses.get(0);
+                ArrayList<String> addressFragments = new ArrayList<String>();
+
+                // Fetch the address lines using getAddressLine,
+                // join them, and send them to the thread.
+                for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+                    addressFragments.add(address.getAddressLine(i));
+                }
+                deliverResultToReceiver(Constants.SUCCESS_RESULT, provider,
+                        TextUtils.join(System.getProperty("line.separator"),
+                                addressFragments));
+            }
+
         }
     }
 
@@ -141,27 +112,5 @@ public class FetchAddressIntentService extends IntentService {
         public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME + ".LOCATION_DATA_EXTRA";
     }
 
-    public static String getActivityString(Context context, int detectedActivityType) {
-        Resources resources = context.getResources();
-        switch (detectedActivityType) {
-            case DetectedActivity.IN_VEHICLE:
-                return resources.getString(R.string.in_vehicle);
-            case DetectedActivity.ON_BICYCLE:
-                return resources.getString(R.string.on_bicycle);
-            case DetectedActivity.ON_FOOT:
-                return resources.getString(R.string.on_foot);
-            case DetectedActivity.RUNNING:
-                return resources.getString(R.string.running);
-            case DetectedActivity.STILL:
-                return resources.getString(R.string.still);
-            case DetectedActivity.TILTING:
-                return resources.getString(R.string.tilting);
-            case DetectedActivity.UNKNOWN:
-                return resources.getString(R.string.unknown);
-            case DetectedActivity.WALKING:
-                return resources.getString(R.string.walking);
-            default:
-                return resources.getString(R.string.unidentifiable_activity, detectedActivityType);
-        }
-    }
+
 }

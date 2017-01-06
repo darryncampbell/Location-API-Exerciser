@@ -22,11 +22,15 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+
+import java.util.ArrayList;
 
 
 public class LocationServicesWrapper  implements
@@ -44,14 +48,17 @@ public class LocationServicesWrapper  implements
     Context context;
     LocationUI ui;
     PendingIntent activityRecognitionPI = null;
+    PendingIntent geofenceProximityPI = null;
 
     public LocationServicesWrapper(LocationUI ui, Context context)
     {
         pollingGMS = false;
         this.context = context;
         this.ui = ui;
-        Intent intent = new Intent(context, FetchAddressIntentService.class);
+        Intent intent = new Intent(context, ActivityRecognitionIntentService.class);
         activityRecognitionPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent intent2 = new Intent(context, GeofenceLocServicesIntentService.class);
+        geofenceProximityPI = PendingIntent.getService(context, 0, intent2, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -239,5 +246,90 @@ public class LocationServicesWrapper  implements
                 }
             }
         });
+    }
+
+    public void startGeofence(Location location) {
+        if (!mGoogleApiClient.isConnected())
+        {
+            //  Client is not connected
+            Log.e(TAG, "Unable to create Geofence as client is not connected");
+            Toast.makeText(context, "Unable to create Geofence as Client is not connected", Toast.LENGTH_SHORT);
+        }
+        else {
+            if (geofenceProximityPI != null) {
+                LocationServices.GeofencingApi.addGeofences(
+                        mGoogleApiClient,
+                        getGeofencingRequest(location),
+                        geofenceProximityPI).setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        if (!status.isSuccess())
+                        {
+                            //  Something went wrong
+                            Log.w(TAG, "Failed to create Geofence for Location services");
+                        }
+                        else
+                        {
+                            //  Everything went OK
+                            Log.i(TAG, "Successfully created geofence for location services");
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    public Boolean stopGeofence() {
+        if (!mGoogleApiClient.isConnected())
+        {
+            //  Client is not connected
+            Log.e(TAG, "Unable to remove Geofence as client is not connected");
+            Toast.makeText(context, "Unable to remove Geofence as Client is not connected", Toast.LENGTH_SHORT);
+            return false;
+        }
+        else {
+            if (geofenceProximityPI != null) {
+                LocationServices.GeofencingApi.removeGeofences(
+                        mGoogleApiClient,
+                        geofenceProximityPI).setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        if (!status.isSuccess())
+                        {
+                            Log.w(TAG, "Failed to remove Geofence for Location services");
+                        }
+                        else
+                        {
+                            Log.i(TAG, "Successfully removed geofence for location services");
+                            GeofenceUtilities.cancelNotification(context, 1);
+                        }
+                    }
+                });
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private GeofencingRequest getGeofencingRequest(Location location) {
+
+        ArrayList<Geofence> geofenceList = new ArrayList<Geofence>();
+        geofenceList.add(new Geofence.Builder()
+                .setRequestId("From Location Services")
+                .setCircularRegion(
+                        location.getLatitude(),
+                        location.getLongitude(),
+                        GeofenceUtilities.TWENTY_METERS
+                )
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                        Geofence.GEOFENCE_TRANSITION_EXIT |
+                        Geofence.GEOFENCE_TRANSITION_DWELL)
+                .setLoiteringDelay(GeofenceUtilities.GEOFENCE_LOITERING_DELAY_IN_MS)
+                .build());
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(geofenceList);
+        return builder.build();
     }
 }

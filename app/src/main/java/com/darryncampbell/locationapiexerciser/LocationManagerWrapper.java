@@ -2,7 +2,9 @@ package com.darryncampbell.locationapiexerciser;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -17,6 +19,9 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.util.List;
+
+import static com.darryncampbell.locationapiexerciser.GeofenceUtilities.TWELVE_HOURS_IN_MILLISECONDS;
+import static com.darryncampbell.locationapiexerciser.GeofenceUtilities.TWENTY_METERS;
 
 /**
  * Created by darry on 30/12/2016.
@@ -45,6 +50,7 @@ public class LocationManagerWrapper {
     LocationListener customListener;
     Boolean mStarted;
     Boolean mCustomLocationStarted;
+    PendingIntent geofenceProximityPI = null;
 
     public LocationManagerWrapper(LocationUI ui, Context context, String customProviderName) {
         this.ui = ui;
@@ -56,13 +62,15 @@ public class LocationManagerWrapper {
         customListener = null;
         mStarted = false;
         mCustomLocationStarted = false;
+        Intent intent = new Intent(context, GeofenceLocManIntentService.class);
+        geofenceProximityPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public void populateUiStatus() {
         TextView txtStatusEnabled = (TextView) ((Activity) context).findViewById(R.id.txtStatusEnabled);
         TextView txtGpsProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtGpsProviderStatus);
         TextView txtNetworkProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtNetworkProviderStatus);
-        TextView txtCustomProviderStatus = (TextView) ((Activity)context).findViewById(R.id.txtCustomProviderStatus);
+        TextView txtCustomProviderStatus = (TextView) ((Activity) context).findViewById(R.id.txtCustomProviderStatus);
         TextView txtOtherProviders = (TextView) ((Activity) context).findViewById(R.id.txtOtherProviderStatus);
         TextView txtGPSAddress = (TextView) ((Activity) context).findViewById(R.id.txtGPSAddress);
         TextView txtNetworkAddress = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAddress);
@@ -108,11 +116,11 @@ public class LocationManagerWrapper {
 
         //  Custom Provider
         try {
-            customProvider = locationManager.getProvider(((Activity)context).getString(R.string.CUSTOM_PROVIDER));
+            customProvider = locationManager.getProvider(((Activity) context).getString(R.string.CUSTOM_PROVIDER));
             if (customProvider == null)
                 txtCustomProviderStatus.setText("No Provider");
             else {
-                if (locationManager.isProviderEnabled(((Activity)context).getString(R.string.CUSTOM_PROVIDER)))
+                if (locationManager.isProviderEnabled(((Activity) context).getString(R.string.CUSTOM_PROVIDER)))
                     txtCustomProviderStatus.setText("Enabled");
                 else {
                     txtCustomProviderStatus.setText("Disabled");
@@ -128,7 +136,7 @@ public class LocationManagerWrapper {
         for (int i = 0; i < allProviders.size(); i++) {
             if (!allProviders.get(i).equalsIgnoreCase("gps") &&
                     !allProviders.get(i).equalsIgnoreCase("network") &&
-                    !allProviders.get(i).equalsIgnoreCase(((Activity)context).getString(R.string.CUSTOM_PROVIDER))) {
+                    !allProviders.get(i).equalsIgnoreCase(((Activity) context).getString(R.string.CUSTOM_PROVIDER))) {
                 if (!(allProviderStatus.equals("")))
                     allProviderStatus += ", ";
                 allProviderStatus += allProviders.get(i);
@@ -152,6 +160,29 @@ public class LocationManagerWrapper {
         } else {
             locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
             return !TextUtils.isEmpty(locationProviders);
+        }
+    }
+
+    public void startGeofence(Location location) {
+        if (geofenceProximityPI != null) {
+            //locationManager.addProximityAlert(51.2268559, -1.1417534, TWENTY_METERS, TWELVE_HOURS_IN_MILLISECONDS,
+            //        geofenceProximityPI);
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            locationManager.addProximityAlert(location.getLatitude(), location.getLongitude(), TWENTY_METERS, GeofenceUtilities.DO_NOT_EXPIRE,
+                    geofenceProximityPI);
+        }
+
+    }
+
+    public void stopGeofence() {
+        if (geofenceProximityPI != null) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            locationManager.removeProximityAlert(geofenceProximityPI);
+            GeofenceUtilities.cancelNotification(context, 0);
         }
     }
 

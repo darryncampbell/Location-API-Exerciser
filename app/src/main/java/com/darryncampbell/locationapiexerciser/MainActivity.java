@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
@@ -42,11 +43,13 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     public static final int LOCATION_SETTINGS_PERMISSION_REQUEST = 1;
     boolean locationPermission = false;
     String customProviderName;
-    Location customLocation;
     LocationServicesWrapper locationServicesWrapper = null;
     LocationManagerWrapper locationManagerWrapper = null;
     CustomProviderWrapper customProviderWrapper = null;
+    GeofenceUtilities geofenceUtilities = null;
     public AddressResultReceiver mResultReceiver;
+    Location bestLocationForGeofenceWithLocationManager = null;
+    Location bestLocationForGeofenceWithLocationServices = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationManagerWrapper = new LocationManagerWrapper(this, this, customProviderName);
         locationServicesWrapper = new LocationServicesWrapper(this, this);
         customProviderWrapper = new CustomProviderWrapper(this, this);
+        geofenceUtilities = new GeofenceUtilities(this);
         customProviderName = "";
         mResultReceiver = new AddressResultReceiver(new Handler());
         Button settingsRequestHighAccuracy = (Button)findViewById(R.id.btnLocationSettingsForHighAccuracy);
@@ -72,6 +76,87 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             @Override
             public void onClick(View view) {
                 locationServicesWrapper.GetLocationSettings(MainActivity.this, true);
+            }
+        });
+        final Button btnGeofenceForLocationManagerStart = (Button)findViewById(R.id.btnGeofencingViaLocationManagerStart);
+        final Button btnGeofenceForLocationManagerStop = (Button)findViewById(R.id.btnGeofencingViaLocationManagerStop);
+        final Button btnGeofenceForLocationServicesStart = (Button)findViewById(R.id.btnGeofencingViaLocationServicesStart);
+        final Button btnGeofenceForLocationServicesStop = (Button)findViewById(R.id.btnGeofencingViaLocationServicesStop);
+        if (geofenceUtilities.GetGeofencesAddedForLocationManager())
+        {
+            //  Geofence already exists for Location Manager
+            btnGeofenceForLocationManagerStart.setEnabled(false);
+            btnGeofenceForLocationManagerStop.setEnabled(true);
+        }
+        else
+        {
+            //  Geofence does not exist for Location Manager
+            btnGeofenceForLocationManagerStart.setEnabled(true);
+            btnGeofenceForLocationManagerStop.setEnabled(false);
+        }
+        btnGeofenceForLocationManagerStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //  Start Location Manager Geofence
+                if (bestLocationForGeofenceWithLocationManager != null) {
+                    btnGeofenceForLocationManagerStart.setEnabled(false);
+                    btnGeofenceForLocationManagerStop.setEnabled(true);
+                    geofenceUtilities.SetGeofencesAddedForLocationManager(true);
+                    locationManagerWrapper.startGeofence(bestLocationForGeofenceWithLocationManager);
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Unable to set Geofence as no location available", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        btnGeofenceForLocationManagerStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //  Stop Location Manager Geofence
+                btnGeofenceForLocationManagerStart.setEnabled(true);
+                btnGeofenceForLocationManagerStop.setEnabled(false);
+                geofenceUtilities.SetGeofencesAddedForLocationManager(false);
+                locationManagerWrapper.stopGeofence();
+            }
+        });
+        if (geofenceUtilities.GetGeofencesAddedForLocationServices())
+        {
+            //  Geofence already exists for Location Services
+            btnGeofenceForLocationServicesStart.setEnabled(false);
+            btnGeofenceForLocationServicesStop.setEnabled(true);
+        }
+        else
+        {
+            //  Geofence does not exist for Location Services
+            btnGeofenceForLocationServicesStart.setEnabled(true);
+            btnGeofenceForLocationServicesStop.setEnabled(false);
+        }
+        btnGeofenceForLocationServicesStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //  Start Location Services Geofence
+                if (bestLocationForGeofenceWithLocationServices != null) {
+                    btnGeofenceForLocationServicesStart.setEnabled(false);
+                    btnGeofenceForLocationServicesStop.setEnabled(true);
+                    geofenceUtilities.SetGeofencesAddedForLocationServices(true);
+                    locationServicesWrapper.startGeofence(bestLocationForGeofenceWithLocationServices);
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Unable to set Geofence as no location available", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        btnGeofenceForLocationServicesStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //  Stop Location Services Geofence
+                if (locationServicesWrapper.stopGeofence()) {
+                    btnGeofenceForLocationServicesStart.setEnabled(true);
+                    btnGeofenceForLocationServicesStop.setEnabled(false);
+                    geofenceUtilities.SetGeofencesAddedForLocationServices(false);
+                }
             }
         });
         final SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
@@ -275,6 +360,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         final TextView txtFusedLongitude = (TextView) findViewById(R.id.txtFusedLongitude);
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
         final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
+        UpdateGeofenceLocation(true, location);
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
     }
 
@@ -295,6 +381,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             accuracy.setText(new DecimalFormat("#.#######").format(theLocation.getAccuracy()));
             if (address != null)
                 convertLocationToAddress(theLocation);
+            if (theLocation.getProvider().equalsIgnoreCase(LocationManager.GPS_PROVIDER) ||
+                    theLocation.getProvider().equalsIgnoreCase(LocationManager.NETWORK_PROVIDER)) {
+                if (bestLocationForGeofenceWithLocationManager == null)
+                    UpdateGeofenceLocation(false, theLocation);
+                else
+                {
+                    if (theLocation.getAccuracy() < bestLocationForGeofenceWithLocationManager.getAccuracy())
+                        UpdateGeofenceLocation(false, theLocation);
+                }
+            }
         }
     }
 
@@ -318,6 +414,25 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mResultReceiver);
         intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, location);
         startService(intent);
+    }
+
+    private void UpdateGeofenceLocation(Boolean isLocationServices, Location newLocation)
+    {
+        if (newLocation == null)
+            return;
+
+        TextView txtGeofenceLocationForLocationManager = (TextView)findViewById(R.id.txtGeofencingViaLocationManager);
+        TextView txtGeofenceLocationForLocationServices = (TextView)findViewById(R.id.txtGeofencingViaLocationServices);
+        if (isLocationServices)
+        {
+            bestLocationForGeofenceWithLocationServices = newLocation;
+            txtGeofenceLocationForLocationServices.setText("" + newLocation.getLatitude());
+        }
+        else
+        {
+            bestLocationForGeofenceWithLocationManager = newLocation;
+            txtGeofenceLocationForLocationManager.setText("" + newLocation.getLatitude());
+        }
     }
 
     @Override
