@@ -38,6 +38,7 @@ public class CustomProviderWrapper implements GpsPlaybackListener {
         this.ui = ui;
         initialized = false;
         fileError = false;
+        receiver = null;
     }
 
 
@@ -47,9 +48,12 @@ public class CustomProviderWrapper implements GpsPlaybackListener {
 
     public void onStop()
     {
-        if (receiver != null)
+        try {
             context.unregisterReceiver(receiver);
-
+        }
+        catch (IllegalArgumentException e) {
+            //  receiver was never registered
+        }
         try {
             context.unbindService(connection);
         } catch (Exception ie) {

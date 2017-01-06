@@ -10,12 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -23,16 +19,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 
@@ -50,12 +43,15 @@ public class LocationServicesWrapper  implements
     Boolean pollingGMS;
     Context context;
     LocationUI ui;
+    PendingIntent activityRecognitionPI = null;
 
     public LocationServicesWrapper(LocationUI ui, Context context)
     {
         pollingGMS = false;
         this.context = context;
         this.ui = ui;
+        Intent intent = new Intent(context, FetchAddressIntentService.class);
+        activityRecognitionPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -83,8 +79,10 @@ public class LocationServicesWrapper  implements
     public void onStop()
     {
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            unregisterForActivityRecognition();
             mGoogleApiClient.disconnect();
         }
+        ui.UpdateUIWithFusedLocation(null);
     }
 
     @Override
@@ -95,17 +93,20 @@ public class LocationServicesWrapper  implements
             ui.UpdateUIApplicationServicesAvailable(true);
             ui.UpdateUIWithFusedLocation(fusedLocation);
             startGMSLocation();
+            registerForActivityRecognition();
         }
         else
             ui.UpdateUIApplicationServicesAvailable(false);
 
+    }
+
+    private void registerForActivityRecognition()
+    {
         //  Start the Activity results
-        Intent intent = new Intent(context, FetchAddressIntentService.class);
-        PendingIntent pi = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         final PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
                 mGoogleApiClient,
                 TEN_SECONDS,
-                pi);
+                activityRecognitionPI);
         result.setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(Status status) {
@@ -118,6 +119,29 @@ public class LocationServicesWrapper  implements
                 {
                     //  Everything went OK
                     Log.i(TAG, "Activity Recognition updates successfully registered for");
+                }
+            }
+        });
+
+    }
+
+    private void unregisterForActivityRecognition()
+    {
+        final PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(
+                mGoogleApiClient,
+                activityRecognitionPI);
+        result.setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (!status.isSuccess())
+                {
+                    //  Something went wrong
+                    Log.w(TAG, "Failed to unregister for Activity Recognition updates");
+                }
+                else
+                {
+                    //  Everything went OK
+                    Log.i(TAG, "Activity Recognition updates successfully unregistered");
                 }
             }
         });

@@ -157,6 +157,19 @@ public class LocationManagerWrapper {
 
     public void stopAospLocation() {
         mStarted = false;
+
+        final TextView txtGpsLatitude = (TextView) ((Activity) context).findViewById(R.id.txtGpsLatitude);
+        final TextView txtGpsLongitude = (TextView) ((Activity) context).findViewById(R.id.txtGpsLongitude);
+        final TextView txtGpsAccuracy = (TextView) ((Activity) context).findViewById(R.id.txtGpsAccuracy);
+        final TextView txtNetworkLatitude = (TextView) ((Activity) context).findViewById(R.id.txtNetworkLatitude);
+        final TextView txtNetworkLongitude = (TextView) ((Activity) context).findViewById(R.id.txtNetworkLongitude);
+        final TextView txtNetworkAccuracy = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAccuracy);
+        final TextView txtGPSAddress = (TextView) ((Activity) context).findViewById(R.id.txtGPSAddress);
+        final TextView txtNetworkAddress = (TextView) ((Activity) context).findViewById(R.id.txtNetworkAddress);
+
+        ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, null);
+        ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, null);
+
         if (gpsListener != null) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 locationManager.removeUpdates(gpsListener);
@@ -372,13 +385,18 @@ public class LocationManagerWrapper {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //  Just to get rid of Eclipse warnings
         }
-        locationManager.requestLocationUpdates(((Activity)context).getString(R.string.CUSTOM_PROVIDER), TIME_BETWEEN_CUSTOM_UPDATES, 0, customListener);
-        Location lastCustomPosition = locationManager.getLastKnownLocation(((Activity)context).getString(R.string.CUSTOM_PROVIDER));
-        if (lastCustomPosition != null)
-        {
-            customLocationAosp = lastCustomPosition;
-            ui.UpdateUIWithLocation(txtCustomLatitude, txtCustomLongitude, txtCustomAccuracy, null, customLocationAosp);
+        if (locationManager.getProvider(((Activity)context).getString(R.string.CUSTOM_PROVIDER)) != null) {
+            locationManager.requestLocationUpdates(((Activity) context).getString(R.string.CUSTOM_PROVIDER), TIME_BETWEEN_CUSTOM_UPDATES, 0, customListener);
+            Location lastCustomPosition = locationManager.getLastKnownLocation(((Activity) context).getString(R.string.CUSTOM_PROVIDER));
+            if (lastCustomPosition != null) {
+                customLocationAosp = lastCustomPosition;
+                ui.UpdateUIWithLocation(txtCustomLatitude, txtCustomLongitude, txtCustomAccuracy, null, customLocationAosp);
+            }
         }
-
+        else
+        {
+            Log.w(TAG, "Did not start custom provider updates as " + ((Activity)context).getString(R.string.CUSTOM_PROVIDER) + " provider does not exist");
+            ui.UpdateUIWithCustomProviderEnabled(false);
+        }
     }
 }

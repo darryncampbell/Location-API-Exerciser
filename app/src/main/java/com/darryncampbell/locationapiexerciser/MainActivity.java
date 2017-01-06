@@ -210,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationManagerWrapper.stopAospLocation();
         locationManagerWrapper.stopCustomProviderListener();
         customProviderWrapper.onStop();
+        TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+        activityRecognitionTxt.setText("Unregistered");
     }
 
     @Override
