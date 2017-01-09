@@ -426,12 +426,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         if (isLocationServices)
         {
             bestLocationForGeofenceWithLocationServices = newLocation;
-            txtGeofenceLocationForLocationServices.setText("" + newLocation.getLatitude());
+            txtGeofenceLocationForLocationServices.setText("" + newLocation.getProvider() + " position");
         }
         else
         {
             bestLocationForGeofenceWithLocationManager = newLocation;
-            txtGeofenceLocationForLocationManager.setText("" + newLocation.getLatitude());
+            txtGeofenceLocationForLocationManager.setText("" + newLocation.getProvider() + " position");
         }
     }
 
