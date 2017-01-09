@@ -86,7 +86,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txtNetworkProviderStatus"
-        android:textSize="18sp"
+        android:textSize="14sp"
         android:layout_alignBaseline="@+id/lblNetworkProviderStatus"
         android:layout_alignBottom="@+id/lblNetworkProviderStatus"
         android:layout_alignParentEnd="true" />
@@ -107,7 +107,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txtGpsProviderStatus"
-        android:textSize="18sp"
+        android:textSize="14sp"
         android:layout_alignBaseline="@+id/lblGpsProviderStatus"
         android:layout_alignBottom="@+id/lblGpsProviderStatus"
         android:layout_alignParentEnd="true" />
@@ -128,7 +128,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txtCustomProviderStatus"
-        android:textSize="18sp"
+        android:textSize="14sp"
         android:layout_alignBaseline="@+id/lblCustomProviderStatus"
         android:layout_alignBottom="@+id/lblCustomProviderStatus"
         android:layout_alignParentEnd="true" />
@@ -149,7 +149,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txtOtherProviderStatus"
-        android:textSize="18sp"
+        android:textSize="14sp"
         android:layout_alignBaseline="@+id/lblOtherProviderStatus"
         android:layout_alignBottom="@+id/lblOtherProviderStatus"
         android:layout_alignParentEnd="true" />

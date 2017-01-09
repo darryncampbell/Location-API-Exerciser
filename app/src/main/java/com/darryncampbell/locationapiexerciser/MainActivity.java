@@ -405,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             txtLocationServicesAvailable.setText("No");
             UpdateUIWithFusedLocation(null);
             TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
-            activityRecognitionTxt.setText("No Location Services");
+            activityRecognitionTxt.setText("No Loc. Services");
         }
     }
 
