@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
@@ -233,15 +234,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         filter.addAction(this.getResources().getString(R.string.Activity_Broadcast_Action));
         registerReceiver(myBroadcastReceiver, filter);
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
+/*        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                adhocTesting();
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
-//            }
-//        });
-
+            }
+        });
+*/
     }
 
     @Override
@@ -360,8 +362,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         final TextView txtFusedLongitude = (TextView) findViewById(R.id.txtFusedLongitude);
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
         final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
-        UpdateGeofenceLocation(true, location);
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
+        if (location != null)
+        {
+            UpdateUIApplicationServicesAvailable(true);
+            UpdateGeofenceLocation(true, location);
+        }
     }
 
     public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, TextView address, Location theLocation)
@@ -405,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             txtLocationServicesAvailable.setText("No");
             UpdateUIWithFusedLocation(null);
             TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
-            activityRecognitionTxt.setText("No Loc. Services");
+            //activityRecognitionTxt.setText("No Loc. Services");
         }
     }
 
@@ -560,5 +566,14 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             activityRecognitionTxt.setText(actionText);
         }
     };
+
+    public void adhocTesting()
+    {
+        Location testLocation = new Location("gps");
+        testLocation.setLatitude(51.2268559d);
+        testLocation.setLongitude(-1.1417534);
+//        convertLocationToAddress(testLocation);
+        locationServicesWrapper.startGeofence(testLocation);
+    }
 
 }

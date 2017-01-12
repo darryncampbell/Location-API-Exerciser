@@ -30,8 +30,7 @@ public class FetchAddressIntentService extends IntentService {
         super("FetchAddressIntentService");
     }
 
-    //  Intents will be received either as a request to resolve the addresses from the GeoCode lookup or
-    //  as activity recognition returned from the activity recognizer
+    //  Intents will be received as a request to resolve the addresses from the GeoCode lookup
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {

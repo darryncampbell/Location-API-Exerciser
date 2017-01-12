@@ -29,6 +29,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.internal.FusedLocationProviderResult;
 
 import java.util.ArrayList;
 
@@ -85,9 +86,13 @@ public class LocationServicesWrapper  implements
 
     public void onStop()
     {
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient != null) {
             unregisterForActivityRecognition();
-            mGoogleApiClient.disconnect();
+            stopGMSLocation();
+            if (mGoogleApiClient.isConnected())
+            {
+                mGoogleApiClient.disconnect();
+            }
         }
         ui.UpdateUIWithFusedLocation(null);
     }
@@ -99,11 +104,12 @@ public class LocationServicesWrapper  implements
         if (fusedLocation != null) {
             ui.UpdateUIApplicationServicesAvailable(true);
             ui.UpdateUIWithFusedLocation(fusedLocation);
-            startGMSLocation();
-            registerForActivityRecognition();
         }
         else
             ui.UpdateUIApplicationServicesAvailable(false);
+
+        startGMSLocation();
+        registerForActivityRecognition();
 
     }
 
@@ -134,37 +140,41 @@ public class LocationServicesWrapper  implements
 
     private void unregisterForActivityRecognition()
     {
-        final PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(
-                mGoogleApiClient,
-                activityRecognitionPI);
-        result.setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(Status status) {
-                if (!status.isSuccess())
-                {
-                    //  Something went wrong
-                    Log.w(TAG, "Failed to unregister for Activity Recognition updates");
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+        {
+            final PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(
+                    mGoogleApiClient,
+                    activityRecognitionPI);
+            result.setResultCallback(new ResultCallback<Status>() {
+                @Override
+                public void onResult(Status status) {
+                    if (!status.isSuccess())
+                    {
+                        //  Something went wrong
+                        Log.w(TAG, "Failed to unregister for Activity Recognition updates");
+                    }
+                    else
+                    {
+                        //  Everything went OK
+                        Log.i(TAG, "Activity Recognition updates successfully unregistered");
+                    }
                 }
-                else
-                {
-                    //  Everything went OK
-                    Log.i(TAG, "Activity Recognition updates successfully unregistered");
-                }
-            }
-        });
+            });
+        }
+
     }
 
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         ui.UpdateUIApplicationServicesAvailable(false);
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+        Log.w(TAG, "Location Services connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
 
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.i(TAG, "Connection suspended");
+        Log.w(TAG, "Location Services connection suspended");
         ui.UpdateUIApplicationServicesAvailable(false);
         mGoogleApiClient.connect();
     }
@@ -180,7 +190,49 @@ public class LocationServicesWrapper  implements
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(TIME_BETWEEN_GMS_UPDATES);
         locationRequest.setFastestInterval(TEN_SECONDS);
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
+        final PendingResult<Status> result =
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
+        result.setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (!status.isSuccess())
+                {
+                    //  Something went wrong
+                    Log.w(TAG, "Failed to register for Location updates via location services");
+                }
+                else
+                {
+                    //  Everything went OK
+                    Log.i(TAG, "Location service updates successfully registered for");
+                }
+            }
+        });
+
+    }
+
+    public void stopGMSLocation()
+    {
+        pollingGMS = false;
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+        {
+            final PendingResult<Status> result =
+                    LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+            result.setResultCallback(new ResultCallback<Status>() {
+                @Override
+                public void onResult(Status status) {
+                    if (!status.isSuccess())
+                    {
+                        //  Something went wrong
+                        Log.w(TAG, "Failed to unregister Location updates via location services");
+                    }
+                    else
+                    {
+                        //  Everything went OK
+                        Log.i(TAG, "Location service updates successfully unregistered");
+                    }
+                }
+            });
+        }
     }
 
     @Override
