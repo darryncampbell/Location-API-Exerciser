@@ -23,6 +23,7 @@ import com.google.android.gms.awareness.snapshot.WeatherResult;
 import com.google.android.gms.awareness.state.BeaconState;
 import com.google.android.gms.awareness.state.HeadphoneState;
 import com.google.android.gms.awareness.state.Weather;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
@@ -94,8 +95,8 @@ public class AwarenessWrapper {
                     @Override
                     public void onResult(DetectedActivityResult detectedActivityResult) {
                         if (!detectedActivityResult.getStatus().isSuccess()) {
-                            Log.e(TAG, "Awareness could not get the current activity.");
-                            ui.UpdateUIWithAwareness(txtAwarenessActivity, "Error");
+                            Log.e(TAG, "Awareness could not get the current activity. " + CommonStatusCodes.getStatusCodeString(detectedActivityResult.getStatus().getStatusCode()));
+                            ui.UpdateUIWithAwareness(txtAwarenessActivity, "Error retrieving activity");
                         }
                         else {
                             ActivityRecognitionResult ar = detectedActivityResult.getActivityRecognitionResult();

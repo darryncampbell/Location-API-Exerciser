@@ -359,9 +359,10 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
         final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
-        if (location != null && !mLocationServicesAvailable) {
-            UpdateUIApplicationServicesAvailable(true);
+        if (location != null) {
             UpdateGeofenceLocation(true, location);
+            if (!mLocationServicesAvailable)
+                UpdateUIApplicationServicesAvailable(true);
         }
     }
 
@@ -393,14 +394,17 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     public void UpdateUIApplicationServicesAvailable(Boolean isAvailable) {
         mLocationServicesAvailable = isAvailable;
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
+        TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
+        String noLocationServices = "No Loc. Services";  //  Should use resource!!
         if (isAvailable) {
             txtLocationServicesAvailable.setText("Yes");
             UpdateUIWithAwarenessAvailable(true);
+            if (activityRecognitionTxt.getText().equals(noLocationServices))
+                activityRecognitionTxt.setText("Pending");
         } else {
             txtLocationServicesAvailable.setText("No");
             UpdateUIWithFusedLocation(null);
-            TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
-            //activityRecognitionTxt.setText("No Loc. Services");
+            activityRecognitionTxt.setText(noLocationServices);
         }
     }
 
