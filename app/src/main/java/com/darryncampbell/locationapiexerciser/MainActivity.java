@@ -9,10 +9,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
@@ -37,7 +35,6 @@ import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataCanada;
 import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataSpain;
 import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataTasmania;
 
-
 public class MainActivity extends AppCompatActivity implements LocationUI {
 
     public static final String TAG = "LOCATION API EXERCISER";
@@ -47,10 +44,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     LocationServicesWrapper locationServicesWrapper = null;
     LocationManagerWrapper locationManagerWrapper = null;
     CustomProviderWrapper customProviderWrapper = null;
+    AwarenessWrapper awarenessWrapper = null;
     GeofenceUtilities geofenceUtilities = null;
     public AddressResultReceiver mResultReceiver;
     Location bestLocationForGeofenceWithLocationManager = null;
     Location bestLocationForGeofenceWithLocationServices = null;
+    Boolean mLocationServicesAvailable = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,11 +60,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationManagerWrapper = new LocationManagerWrapper(this, this, customProviderName);
         locationServicesWrapper = new LocationServicesWrapper(this, this);
         customProviderWrapper = new CustomProviderWrapper(this, this);
+        awarenessWrapper = new AwarenessWrapper(this, locationServicesWrapper, this);
         geofenceUtilities = new GeofenceUtilities(this);
         customProviderName = "";
         mResultReceiver = new AddressResultReceiver(new Handler());
-        Button settingsRequestHighAccuracy = (Button)findViewById(R.id.btnLocationSettingsForHighAccuracy);
-        Button settingsRequestBle = (Button)findViewById(R.id.btnLocationSettingsForBle);
+        Button settingsRequestHighAccuracy = (Button) findViewById(R.id.btnLocationSettingsForHighAccuracy);
+        Button settingsRequestBle = (Button) findViewById(R.id.btnLocationSettingsForBle);
         settingsRequestHighAccuracy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -79,18 +79,25 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 locationServicesWrapper.GetLocationSettings(MainActivity.this, true);
             }
         });
-        final Button btnGeofenceForLocationManagerStart = (Button)findViewById(R.id.btnGeofencingViaLocationManagerStart);
-        final Button btnGeofenceForLocationManagerStop = (Button)findViewById(R.id.btnGeofencingViaLocationManagerStop);
-        final Button btnGeofenceForLocationServicesStart = (Button)findViewById(R.id.btnGeofencingViaLocationServicesStart);
-        final Button btnGeofenceForLocationServicesStop = (Button)findViewById(R.id.btnGeofencingViaLocationServicesStop);
-        if (geofenceUtilities.GetGeofencesAddedForLocationManager())
-        {
+        final Button btnAwarenessGetSnapshot = (Button) findViewById(R.id.btnAwarenessGetSnapshot);
+        btnAwarenessGetSnapshot.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (awarenessWrapper != null)
+                            awarenessWrapper.getSnapshot();
+                    }
+                }
+        );
+        final Button btnGeofenceForLocationManagerStart = (Button) findViewById(R.id.btnGeofencingViaLocationManagerStart);
+        final Button btnGeofenceForLocationManagerStop = (Button) findViewById(R.id.btnGeofencingViaLocationManagerStop);
+        final Button btnGeofenceForLocationServicesStart = (Button) findViewById(R.id.btnGeofencingViaLocationServicesStart);
+        final Button btnGeofenceForLocationServicesStop = (Button) findViewById(R.id.btnGeofencingViaLocationServicesStop);
+        if (geofenceUtilities.GetGeofencesAddedForLocationManager()) {
             //  Geofence already exists for Location Manager
             btnGeofenceForLocationManagerStart.setEnabled(false);
             btnGeofenceForLocationManagerStop.setEnabled(true);
-        }
-        else
-        {
+        } else {
             //  Geofence does not exist for Location Manager
             btnGeofenceForLocationManagerStart.setEnabled(true);
             btnGeofenceForLocationManagerStop.setEnabled(false);
@@ -104,9 +111,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                     btnGeofenceForLocationManagerStop.setEnabled(true);
                     geofenceUtilities.SetGeofencesAddedForLocationManager(true);
                     locationManagerWrapper.startGeofence(bestLocationForGeofenceWithLocationManager);
-                }
-                else
-                {
+                } else {
                     Toast.makeText(getApplicationContext(), "Unable to set Geofence as no location available", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -121,14 +126,11 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 locationManagerWrapper.stopGeofence();
             }
         });
-        if (geofenceUtilities.GetGeofencesAddedForLocationServices())
-        {
+        if (geofenceUtilities.GetGeofencesAddedForLocationServices()) {
             //  Geofence already exists for Location Services
             btnGeofenceForLocationServicesStart.setEnabled(false);
             btnGeofenceForLocationServicesStop.setEnabled(true);
-        }
-        else
-        {
+        } else {
             //  Geofence does not exist for Location Services
             btnGeofenceForLocationServicesStart.setEnabled(true);
             btnGeofenceForLocationServicesStop.setEnabled(false);
@@ -142,9 +144,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                     btnGeofenceForLocationServicesStop.setEnabled(true);
                     geofenceUtilities.SetGeofencesAddedForLocationServices(true);
                     locationServicesWrapper.startGeofence(bestLocationForGeofenceWithLocationServices);
-                }
-                else
-                {
+                } else {
                     Toast.makeText(getApplicationContext(), "Unable to set Geofence as no location available", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -160,10 +160,10 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 }
             }
         });
-        final SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+        final SeekBar customProviderIntervalSeek = (SeekBar) findViewById(R.id.seekCustomProviderInterval);
         customProviderIntervalSeek.setMax(59000);
         customProviderIntervalSeek.setProgress(0);
-        final TextView customProviderIntervalText = (TextView)findViewById(R.id.txtCustomProviderInterval);
+        final TextView customProviderIntervalText = (TextView) findViewById(R.id.txtCustomProviderInterval);
         customProviderIntervalText.setText("" + (customProviderIntervalSeek.getProgress() + 1000));
         customProviderIntervalSeek.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -173,29 +173,30 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                         progressValue = progressValue * 1000;
                         customProviderIntervalText.setText("" + (progressValue + 1000));
                     }
+
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {
 
                     }
+
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
 
                     }
                 }
         );
-        Button customProviderStart = (Button)findViewById(R.id.btnCustomProviderStart);
-        Button customProviderStop = (Button)findViewById(R.id.btnCustomProviderStop);
-        customProviderStart.setOnClickListener(new View.OnClickListener(){
+        Button customProviderStart = (Button) findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button) findViewById(R.id.btnCustomProviderStop);
+        customProviderStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                RadioGroup radioProviderGroup = (RadioGroup)findViewById(R.id.radioProvider);
-                RadioGroup radioTrackGroup = (RadioGroup)findViewById(R.id.radioTrackData);
+                RadioGroup radioProviderGroup = (RadioGroup) findViewById(R.id.radioProvider);
+                RadioGroup radioTrackGroup = (RadioGroup) findViewById(R.id.radioTrackData);
                 int selectedProviderId = radioProviderGroup.getCheckedRadioButtonId();
                 int selectedTrackId = radioTrackGroup.getCheckedRadioButtonId();
                 String selectedProvider = "";
                 String selectedTrack = "";
-                switch(selectedProviderId)
-                {
+                switch (selectedProviderId) {
                     case radioProviderGps:
                         selectedProvider = LocationManager.GPS_PROVIDER;
                         break;
@@ -206,8 +207,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                         selectedProvider = getString(R.string.CUSTOM_PROVIDER);
                         break;
                 }
-                switch (selectedTrackId)
-                {
+                switch (selectedTrackId) {
                     case radioTrackDataCanada:
                         selectedTrack = "canada_highway";
                         break;
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 customProviderWrapper.userStarted(selectedProvider, selectedTrack, chosenInterval);
             }
         });
-        customProviderStop.setOnClickListener(new View.OnClickListener(){
+        customProviderStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 customProviderWrapper.userStopped();
@@ -247,11 +247,9 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == LOCATION_SETTINGS_PERMISSION_REQUEST)
-        {
+        if (requestCode == LOCATION_SETTINGS_PERMISSION_REQUEST) {
             switch (resultCode) {
                 case Activity.RESULT_OK:
                     Log.i(TAG, "User agreed to make required location settings changes.");
@@ -297,13 +295,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationManagerWrapper.stopAospLocation();
         locationManagerWrapper.stopCustomProviderListener();
         customProviderWrapper.onStop();
-        TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+        TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
         activityRecognitionTxt.setText("Unregistered");
     }
 
     @Override
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(myBroadcastReceiver);
     }
@@ -348,6 +345,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            adhocTesting();
             return true;
         }
 
@@ -355,33 +353,26 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     }
 
 
-
-    public void UpdateUIWithFusedLocation(Location location)
-    {
+    public void UpdateUIWithFusedLocation(Location location) {
         final TextView txtFusedLatitude = (TextView) findViewById(R.id.txtFusedLatitude);
         final TextView txtFusedLongitude = (TextView) findViewById(R.id.txtFusedLongitude);
         final TextView txtFusedAccuracy = (TextView) findViewById(R.id.txtFusedAccuracy);
         final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
-        if (location != null)
-        {
+        if (location != null && !mLocationServicesAvailable) {
             UpdateUIApplicationServicesAvailable(true);
             UpdateGeofenceLocation(true, location);
         }
     }
 
-    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, TextView address, Location theLocation)
-    {
-        if (theLocation == null)
-        {
+    public void UpdateUIWithLocation(TextView latitude, TextView longitude, TextView accuracy, TextView address, Location theLocation) {
+        if (theLocation == null) {
             latitude.setText("Unavailable");
             longitude.setText("Unavailable");
             accuracy.setText("Unavailable");
             if (address != null)
                 address.setText("Unavailable");
-        }
-        else
-        {
+        } else {
             latitude.setText(new DecimalFormat("#.#######").format(theLocation.getLatitude()));
             longitude.setText(new DecimalFormat("#.#######").format(theLocation.getLongitude()));
             accuracy.setText(new DecimalFormat("#.#######").format(theLocation.getAccuracy()));
@@ -391,8 +382,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                     theLocation.getProvider().equalsIgnoreCase(LocationManager.NETWORK_PROVIDER)) {
                 if (bestLocationForGeofenceWithLocationManager == null)
                     UpdateGeofenceLocation(false, theLocation);
-                else
-                {
+                else {
                     if (theLocation.getAccuracy() < bestLocationForGeofenceWithLocationManager.getAccuracy())
                         UpdateGeofenceLocation(false, theLocation);
                 }
@@ -401,16 +391,15 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     }
 
     public void UpdateUIApplicationServicesAvailable(Boolean isAvailable) {
+        mLocationServicesAvailable = isAvailable;
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
-        if (isAvailable)
-        {
+        if (isAvailable) {
             txtLocationServicesAvailable.setText("Yes");
-        }
-        else
-        {
+            UpdateUIWithAwarenessAvailable(true);
+        } else {
             txtLocationServicesAvailable.setText("No");
             UpdateUIWithFusedLocation(null);
-            TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+            TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
             //activityRecognitionTxt.setText("No Loc. Services");
         }
     }
@@ -422,20 +411,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         startService(intent);
     }
 
-    private void UpdateGeofenceLocation(Boolean isLocationServices, Location newLocation)
-    {
+    private void UpdateGeofenceLocation(Boolean isLocationServices, Location newLocation) {
         if (newLocation == null)
             return;
 
-        TextView txtGeofenceLocationForLocationManager = (TextView)findViewById(R.id.txtGeofencingViaLocationManager);
-        TextView txtGeofenceLocationForLocationServices = (TextView)findViewById(R.id.txtGeofencingViaLocationServices);
-        if (isLocationServices)
-        {
+        TextView txtGeofenceLocationForLocationManager = (TextView) findViewById(R.id.txtGeofencingViaLocationManager);
+        TextView txtGeofenceLocationForLocationServices = (TextView) findViewById(R.id.txtGeofencingViaLocationServices);
+        if (isLocationServices) {
             bestLocationForGeofenceWithLocationServices = newLocation;
             txtGeofenceLocationForLocationServices.setText("" + newLocation.getProvider() + " position");
-        }
-        else
-        {
+        } else {
             bestLocationForGeofenceWithLocationManager = newLocation;
             txtGeofenceLocationForLocationManager.setText("" + newLocation.getProvider() + " position");
         }
@@ -443,26 +428,23 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 
     @Override
     public void UpdateUIWithCustomProviderEnabled(Boolean isEnabled) {
-        TextView customProviderStatusTxt = (TextView)findViewById(R.id.txtCustomProviderStatus);
-        TextView customProviderLongitude = (TextView)findViewById(R.id.txtCustomLongitude);
-        TextView customProviderLatitude = (TextView)findViewById(R.id.txtCustomLatitude);
-        TextView customProviderAccuracy = (TextView)findViewById(R.id.txtCustomAccuracy);
-        Button customProviderStart = (Button)findViewById(R.id.btnCustomProviderStart);
-        Button customProviderStop = (Button)findViewById(R.id.btnCustomProviderStop);
+        TextView customProviderStatusTxt = (TextView) findViewById(R.id.txtCustomProviderStatus);
+        TextView customProviderLongitude = (TextView) findViewById(R.id.txtCustomLongitude);
+        TextView customProviderLatitude = (TextView) findViewById(R.id.txtCustomLatitude);
+        TextView customProviderAccuracy = (TextView) findViewById(R.id.txtCustomAccuracy);
+        Button customProviderStart = (Button) findViewById(R.id.btnCustomProviderStart);
+        Button customProviderStop = (Button) findViewById(R.id.btnCustomProviderStop);
         RadioButton radioGpsProvider = (RadioButton) findViewById(R.id.radioProviderGps);
         RadioButton radioNetworkProvider = (RadioButton) findViewById(R.id.radioProviderNetwork);
         RadioButton radioCustomProvider = (RadioButton) findViewById(R.id.radioProviderCustom);
-        RadioButton radioTrackDataCanada = (RadioButton)findViewById(R.id.radioTrackDataCanada);
-        RadioButton radioTrackDataTasmania = (RadioButton)findViewById(R.id.radioTrackDataTasmania);
-        RadioButton radioTrackDataSpain = (RadioButton)findViewById(R.id.radioTrackDataSpain);
-        SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+        RadioButton radioTrackDataCanada = (RadioButton) findViewById(R.id.radioTrackDataCanada);
+        RadioButton radioTrackDataTasmania = (RadioButton) findViewById(R.id.radioTrackDataTasmania);
+        RadioButton radioTrackDataSpain = (RadioButton) findViewById(R.id.radioTrackDataSpain);
+        SeekBar customProviderIntervalSeek = (SeekBar) findViewById(R.id.seekCustomProviderInterval);
 
-        if (isEnabled)
-        {
+        if (isEnabled) {
             customProviderStatusTxt.setText("Enabled");
-        }
-        else
-        {
+        } else {
             customProviderStatusTxt.setText("Disabled");
             customProviderLongitude.setText("Unavailable");
             customProviderLatitude.setText("Unavailable");
@@ -483,17 +465,16 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     public void UpdateUIWithCustomProviderRunning(Boolean isRunning) {
         Button customProviderStart = (Button) findViewById(R.id.btnCustomProviderStart);
         Button customProviderStop = (Button) findViewById(R.id.btnCustomProviderStop);
-        TextView customProviderStatusTxt = (TextView)findViewById(R.id.txtCustomProviderStatus);
+        TextView customProviderStatusTxt = (TextView) findViewById(R.id.txtCustomProviderStatus);
         RadioButton radioGpsProvider = (RadioButton) findViewById(R.id.radioProviderGps);
         RadioButton radioNetworkProvider = (RadioButton) findViewById(R.id.radioProviderNetwork);
         RadioButton radioCustomProvider = (RadioButton) findViewById(R.id.radioProviderCustom);
-        RadioButton radioTrackDataCanada = (RadioButton)findViewById(R.id.radioTrackDataCanada);
-        RadioButton radioTrackDataTasmania = (RadioButton)findViewById(R.id.radioTrackDataTasmania);
-        RadioButton radioTrackDataSpain = (RadioButton)findViewById(R.id.radioTrackDataSpain);
-        SeekBar customProviderIntervalSeek = (SeekBar)findViewById(R.id.seekCustomProviderInterval);
+        RadioButton radioTrackDataCanada = (RadioButton) findViewById(R.id.radioTrackDataCanada);
+        RadioButton radioTrackDataTasmania = (RadioButton) findViewById(R.id.radioTrackDataTasmania);
+        RadioButton radioTrackDataSpain = (RadioButton) findViewById(R.id.radioTrackDataSpain);
+        SeekBar customProviderIntervalSeek = (SeekBar) findViewById(R.id.seekCustomProviderInterval);
 
-        if (isRunning)
-        {
+        if (isRunning) {
             Log.i(TAG, "Custom provider has reported its state as running");
             customProviderStart.setEnabled(false);
             customProviderStop.setEnabled(true);
@@ -506,9 +487,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             customProviderIntervalSeek.setEnabled(false);
             customProviderStatusTxt.setText("Running");
             locationManagerWrapper.startCustomProviderListener();
-        }
-        else
-        {
+        } else {
             Log.i(TAG, "Custom provider has reported its state as stopped");
             customProviderStart.setEnabled(true);
             customProviderStop.setEnabled(false);
@@ -520,6 +499,34 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             locationManagerWrapper.stopCustomProviderListener();
         }
     }
+
+    @Override
+    public void UpdateUIWithAwareness(TextView awarenessTextView, String text)
+    {
+        if (awarenessTextView != null)
+            awarenessTextView.setText(text);
+    }
+
+    private void UpdateUIWithAwarenessAvailable(boolean available)
+    {
+        TextView txtAwarenessPosition = (TextView) findViewById(R.id.txtAwarenessPosition);
+        TextView txtAwarenessActivity = (TextView) findViewById(R.id.txtAwarenessActivity);
+        TextView txtAwarenessPlaces = (TextView) findViewById(R.id.txtAwarenessPlaces);
+        TextView txtAwarenessBeacons = (TextView) findViewById(R.id.txtAwarenessBeacons);
+        TextView txtAwarenessWeather = (TextView) findViewById(R.id.txtAwarenessWeather);
+        TextView txtAwarenessHeadphones = (TextView) findViewById(R.id.txtAwarenessHeadphones);
+
+        if (available)
+        {
+            txtAwarenessPosition.setText("Get Snapshot");
+            txtAwarenessActivity.setText("Get Snapshot");
+            txtAwarenessPlaces.setText("Get Snapshot");
+            txtAwarenessBeacons.setText("Get Snapshot");
+            txtAwarenessWeather.setText("Get Snapshot");
+            txtAwarenessHeadphones.setText("Get Snapshot");
+        }
+    }
+
 
     class AddressResultReceiver extends ResultReceiver {
         public AddressResultReceiver(Handler handler) {
@@ -537,20 +544,13 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             String addressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
             String provider = resultData.getString(FetchAddressIntentService.Constants.LOCATION_PROVIDER);
             Log.i(TAG, "Received decoded address from " + provider + ": " + addressOutput);
-            if (provider.equals(LocationManager.GPS_PROVIDER))
-            {
+            if (provider.equals(LocationManager.GPS_PROVIDER)) {
                 txtGPSAddress.setText(addressOutput);
-            }
-            else if (provider.equals(LocationManager.NETWORK_PROVIDER))
-            {
+            } else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
                 txtNetworkAddress.setText(addressOutput);
-            }
-            else if (provider.equalsIgnoreCase("fused"))
-            {
+            } else if (provider.equalsIgnoreCase("fused")) {
                 txtFusedAddress.setText(addressOutput);
-            }
-            else
-            {
+            } else {
                 //  Unrecognised source
                 Log.e(TAG, "Unrecognised provider");
             }
@@ -562,18 +562,38 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         @Override
         public void onReceive(Context context, Intent intent) {
             String actionText = intent.getStringExtra(getResources().getString(R.string.Activity_Recognition_Action_Text));
-            TextView activityRecognitionTxt = (TextView)findViewById(R.id.txtActivityRecognition);
+            TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
             activityRecognitionTxt.setText(actionText);
         }
     };
 
-    public void adhocTesting()
-    {
-        Location testLocation = new Location("gps");
-        testLocation.setLatitude(51.2268559d);
-        testLocation.setLongitude(-1.1417534);
+    public void adhocTesting() {
+//        Location testLocation = new Location("gps");
+//        testLocation.setLatitude(51.2268559d);
+//        testLocation.setLongitude(-1.1417534);
 //        convertLocationToAddress(testLocation);
-        locationServicesWrapper.startGeofence(testLocation);
+//        locationServicesWrapper.startGeofence(testLocation);
+/*        final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+
+        final String tmDevice, tmSerial, androidId;
+        tmDevice = "" + tm.getDeviceId();
+        tmSerial = "" + tm.getSimSerialNumber();
+        androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+
+        UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
+        String deviceId = deviceUuid.toString();
+
+        if (!locationServicesWrapper.mGoogleApiClient.isConnected())
+        {
+            Log.e(TAG, "Location Services not Connected");
+            return;
+        }
+
+        WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = manager.getConnectionInfo();
+        String address = info.getMacAddress();
+*/
+
     }
 
 }

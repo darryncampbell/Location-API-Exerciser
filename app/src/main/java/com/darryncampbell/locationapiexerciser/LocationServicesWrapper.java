@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -68,7 +69,20 @@ public class LocationServicesWrapper  implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .addApi(ActivityRecognition.API)
+                .addApi(Awareness.API)
                 .build();
+    }
+
+    public GoogleApiClient getGoogleApiClient()
+    {
+        return mGoogleApiClient;
+    }
+    public boolean isConnected()
+    {
+        if (mGoogleApiClient != null)
+            return mGoogleApiClient.isConnected();
+        else
+            return false;
     }
 
     public void initializeAndConnect()

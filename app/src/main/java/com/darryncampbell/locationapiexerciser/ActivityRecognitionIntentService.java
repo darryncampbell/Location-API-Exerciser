@@ -20,7 +20,7 @@ public class ActivityRecognitionIntentService extends IntentService {
     public static final String TAG = "LOCATION API EXERCISER";
 
     public ActivityRecognitionIntentService() {
-        super("ActivityRegisnitionIntentService");
+        super("ActivityRecognitionIntentService");
     }
 
     @Override

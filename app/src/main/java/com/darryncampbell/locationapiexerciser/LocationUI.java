@@ -15,4 +15,5 @@ public abstract interface LocationUI {
     public void convertLocationToAddress(Location location);
     public void UpdateUIWithCustomProviderEnabled(Boolean isEnabled);
     public void UpdateUIWithCustomProviderRunning(Boolean isRunning);
+    public void UpdateUIWithAwareness(TextView awarenessTextView, String text);
 }

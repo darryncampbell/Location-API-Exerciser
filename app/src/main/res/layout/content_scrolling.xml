@@ -731,10 +731,167 @@
             />
 
         <TextView
-            android:text="Custom Provider Settings"
+            android:text="Awareness API"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/txtFusedAddress"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="18dp"
+            android:id="@+id/headingAwarenessAPI" />
+
+        <Button
+            android:text="Get Snapshot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnAwarenessGetSnapshot"
+            android:textSize="14sp"
+            android:layout_below="@+id/headingAwarenessAPI"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:text="Position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblAwarenessPosition"
+            android:layout_below="@+id/btnAwarenessGetSnapshot"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="No Loc Services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAwarenessPosition"
+            android:gravity="right"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblAwarenessPosition"
+            android:layout_alignBottom="@+id/lblAwarenessPosition"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblAwarenessActivity"
+            android:layout_below="@+id/txtAwarenessPosition"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="No Loc Services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAwarenessActivity"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblAwarenessActivity"
+            android:layout_alignBottom="@+id/lblAwarenessActivity"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Nearby Places"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblAwarenessPlaces"
+            android:layout_below="@+id/txtAwarenessActivity"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="No Loc Services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAwarenessPlaces"
+            android:textSize="14sp"
+            android:gravity="right"
+            android:layout_alignBaseline="@+id/lblAwarenessPlaces"
+            android:layout_alignBottom="@+id/lblAwarenessPlaces"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Beacons (filtered)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblAwarenessBeacons"
+            android:layout_below="@+id/txtAwarenessPlaces"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="No Loc Services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAwarenessBeacons"
+            android:textSize="14sp"
+            android:gravity="right"
+            android:layout_alignBaseline="@+id/lblAwarenessBeacons"
+            android:layout_alignBottom="@+id/lblAwarenessBeacons"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblAwarenessWeather"
+            android:layout_below="@+id/txtAwarenessBeacons"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="No Loc Services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAwarenessWeather"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblAwarenessWeather"
+            android:layout_alignBottom="@+id/lblAwarenessWeather"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Headphones State"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblAwarenessHeadphones"
+            android:layout_below="@+id/txtAwarenessWeather"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="No Loc Services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAwarenessHeadphones"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblAwarenessHeadphones"
+            android:layout_alignBottom="@+id/lblAwarenessHeadphones"
+            android:layout_alignParentEnd="true" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@color/zebraBackground"
+            android:layout_marginTop="18dp"
+            android:layout_below="@+id/lblAwarenessHeadphones"
+            />
+
+        <TextView
+            android:text="Custom Provider Settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lblAwarenessHeadphones"
             android:layout_alignParentStart="true"
             android:layout_marginTop="18dp"
             android:id="@+id/headingCustomProviderSettings" />
