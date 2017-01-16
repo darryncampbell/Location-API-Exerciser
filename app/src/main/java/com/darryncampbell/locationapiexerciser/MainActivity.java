@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -346,6 +347,15 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             adhocTesting();
+            return true;
+        }
+        else if (id == R.id.action_about)
+        {
+            try {
+                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                Toast.makeText(this, "Version: " + pInfo.versionName, Toast.LENGTH_LONG).show();
+            } catch (PackageManager.NameNotFoundException e) {
+            }
             return true;
         }
 

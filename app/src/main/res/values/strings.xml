@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Location API Exerciser</string>
     <string name="action_adhoc_testing">Ad-Hoc Tests (DANGER)</string>
+    <string name="action_about">Version</string>
     <string name="service_not_available">Geocode service not available</string>
     <string name="invalid_lat_long_used">invalid lat / long</string>
     <string name="no_address_found">NO location found</string>
