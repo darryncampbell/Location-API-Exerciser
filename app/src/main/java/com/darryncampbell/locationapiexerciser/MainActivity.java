@@ -10,6 +10,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
@@ -27,7 +29,33 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import static com.darryncampbell.locationapiexerciser.R.id.radioProviderCustom;
 import static com.darryncampbell.locationapiexerciser.R.id.radioProviderGps;
@@ -234,6 +262,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         IntentFilter filter = new IntentFilter();
         filter.addAction(this.getResources().getString(R.string.Activity_Broadcast_Action));
         registerReceiver(myBroadcastReceiver, filter);
+
 
 /*        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -582,6 +611,13 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     };
 
     public void adhocTesting() {
+        //  Wifi
+        IntentFilter wifiScanFilter = new IntentFilter();
+        wifiScanFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        registerReceiver(mWifiScanReceiver, wifiScanFilter);
+        WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+        wifiManager.startScan();
+
 //        Location testLocation = new Location("gps");
 //        testLocation.setLatitude(51.2268559d);
 //        testLocation.setLongitude(-1.1417534);
@@ -609,5 +645,87 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 */
 
     }
+
+    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            if (intent.getAction() == WifiManager.SCAN_RESULTS_AVAILABLE_ACTION) {
+                WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                List<ScanResult> apList = wifiManager.getScanResults();
+                JSONObject params = new JSONObject();
+                try
+                {
+                    params.put("considerIp", true);    //  todo make this configurable
+                    JSONArray wifiAccessPoints = new JSONArray();
+                    //JSONObject firstMac = new JSONObject();
+                    //firstMac.put("macAddress", "70:50:af:00:68:b1");
+                    //firstMac.put("signalStrength", -63);
+                    //firstMac.put("signalToNoiseRatio", 0);
+                    //JSONObject secondMac = new JSONObject();
+                    //secondMac.put("macAddress", "78:3e:53:94:f2:06");
+                    //secondMac.put("signalStrength", -88);
+                    //secondMac.put("signalToNoiseRatio", 0);
+                    //wifiAccessPoints.put(firstMac);
+                    //wifiAccessPoints.put(secondMac);
+                    for (int i = 0; i < apList.size(); i++)
+                    {
+                        JSONObject macInfo = new JSONObject();
+                        macInfo.put("macAddress", apList.get(i).BSSID);
+                        macInfo.put("signalStrength", apList.get(i).level);
+                        wifiAccessPoints.put(macInfo);
+                        Log.i(TAG, "AP: " + apList.get(i).SSID + ", " + apList.get(i).level + "dBm.  " + apList.get(i).BSSID);
+                    }
+                    params.put("wifiAccessPoints", wifiAccessPoints);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return;
+                }
+
+/*                String response = performPostCall("https://www.googleapis.com/geolocation/v1/geolocate", new HashMap<String, String>() {
+                   private static final long serialVersionUID = 1L;
+                    {
+                        put("Accept", "application/json");
+                        put("Content-Type", "application/json");
+                        put("key", "AIzaSyC-loi3aDdypT35ZtYQUNO1KfLpntzej1E");
+                        put("wifiAccessPoints", "");
+                    }
+                });
+                Log.e(TAG, response);
+  */
+                //String url = "http://httpbin.org/post";
+                String url = "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyAQytQ9-TjPh5QemTd4RNtWMcBZ7khZbIY";
+
+                //params.put("wifiAccessPoints", new JSONArray());
+
+                JsonObjectRequest jsonRequest = new JsonObjectRequest
+                        (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                // the response is already constructed as a JSONObject!
+                                try {
+                                    String accuracy = response.getString("accuracy");
+                                    response = response.getJSONObject("location");
+                                    Double latitude = response.getDouble("lat");
+                                    Double longitude = response.getDouble("lng");
+                                    Log.i(TAG, "From Google Network Lookup: Lat: " + latitude + ", Long: " + longitude + ", accuracy: " + accuracy);
+                                } catch (JSONException e) {
+                                    Log.e(TAG, e.getMessage());
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.e(TAG, error.toString());
+                            }
+                        });
+
+                Volley.newRequestQueue(getApplicationContext()).add(jsonRequest);
+
+            }
+        }
+    };
+
 
 }
