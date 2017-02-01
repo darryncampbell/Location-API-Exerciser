@@ -171,12 +171,33 @@
         android:layout_marginTop="10dp"
         android:id="@+id/headingPositionAOSP" />
 
+        <TextView
+            android:text="Network Latitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblNetworkLatitude"
+            android:layout_below="@+id/headingPositionAOSP"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtNetworkLatitude"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblNetworkLatitude"
+            android:layout_alignBottom="@+id/lblNetworkLatitude"
+            android:layout_alignParentEnd="true" />
+
     <TextView
         android:text="Network Longitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lblNetworkLongitude"
-        android:layout_below="@+id/headingPositionAOSP"
+        android:layout_below="@+id/lblNetworkLatitude"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
@@ -193,32 +214,11 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
-        android:text="Network Latitude"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblNetworkLatitude"
-        android:layout_below="@+id/lblNetworkLongitude"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
-
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtNetworkLatitude"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblNetworkLatitude"
-        android:layout_alignBottom="@+id/lblNetworkLatitude"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
         android:text="Network Accuracy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lblNetworkAccuracy"
-        android:layout_below="@+id/lblNetworkLatitude"
+        android:layout_below="@+id/lblNetworkLongitude"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
@@ -235,32 +235,11 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
-        android:text="GPS Longitude"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblGpsLongitude"
-        android:layout_below="@+id/lblNetworkAccuracy"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
-
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtGpsLongitude"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblGpsLongitude"
-        android:layout_alignBottom="@+id/lblGpsLongitude"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
         android:text="GPS Latitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lblGpsLatitude"
-        android:layout_below="@+id/lblGpsLongitude"
+        android:layout_below="@+id/lblNetworkAccuracy"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
@@ -277,11 +256,32 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
+        android:text="GPS Longitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblGpsLongitude"
+        android:layout_below="@+id/lblGpsLatitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtGpsLongitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblGpsLongitude"
+        android:layout_alignBottom="@+id/lblGpsLongitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
         android:text="GPS Accuracy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lblGpsAccuracy"
-        android:layout_below="@+id/lblGpsLatitude"
+        android:layout_below="@+id/lblGpsLongitude"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
@@ -306,32 +306,11 @@
             />
 
         <TextView
-            android:text="Custom Longitude"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/lblCustomLongitude"
-            android:layout_below="@+id/lblGpsAccuracy"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="10dp"
-            android:textSize="18sp"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:text="Pending"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtCustomLongitude"
-            android:textSize="14sp"
-            android:layout_alignBaseline="@+id/lblCustomLongitude"
-            android:layout_alignBottom="@+id/lblCustomLongitude"
-            android:layout_alignParentEnd="true" />
-
-        <TextView
             android:text="Custom Latitude"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/lblCustomLatitude"
-            android:layout_below="@+id/lblCustomLongitude"
+            android:layout_below="@+id/lblGpsAccuracy"
             android:layout_alignParentStart="true"
             android:layout_marginTop="10dp"
             android:textSize="18sp"
@@ -348,11 +327,32 @@
             android:layout_alignParentEnd="true" />
 
         <TextView
+            android:text="Custom Longitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblCustomLongitude"
+            android:layout_below="@+id/lblCustomLatitude"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtCustomLongitude"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblCustomLongitude"
+            android:layout_alignBottom="@+id/lblCustomLongitude"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
             android:text="Custom Accuracy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/lblCustomAccuracy"
-            android:layout_below="@+id/lblCustomLatitude"
+            android:layout_below="@+id/lblCustomLongitude"
             android:layout_alignParentStart="true"
             android:layout_marginTop="10dp"
             android:textSize="18sp"
@@ -376,7 +376,7 @@
             android:layout_below="@+id/lblCustomAccuracy"
             />
 
-        <TextView
+    <TextView
         android:text="Position (GMS Only)"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -386,32 +386,11 @@
         android:id="@+id/headingPositionGMS" />
 
     <TextView
-        android:text="Fused Longitude"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lblFusedLongitude"
-        android:layout_below="@+id/headingPositionGMS"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
-
-    <TextView
-        android:text="Pending"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtFusedLongitude"
-        android:textSize="14sp"
-        android:layout_alignBaseline="@+id/lblFusedLongitude"
-        android:layout_alignBottom="@+id/lblFusedLongitude"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
         android:text="Fused Latitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lblFusedLatitude"
-        android:layout_below="@+id/lblFusedLongitude"
+        android:layout_below="@+id/headingPositionGMS"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
@@ -428,11 +407,32 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
+        android:text="Fused Longitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblFusedLongitude"
+        android:layout_below="@+id/lblFusedLatitude"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:text="Pending"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtFusedLongitude"
+        android:textSize="14sp"
+        android:layout_alignBaseline="@+id/lblFusedLongitude"
+        android:layout_alignBottom="@+id/lblFusedLongitude"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
         android:text="Fused Accuracy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lblFusedAccuracy"
-        android:layout_below="@+id/lblFusedLatitude"
+        android:layout_below="@+id/lblFusedLongitude"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
@@ -456,11 +456,112 @@
             android:layout_below="@+id/lblFusedAccuracy"
             />
 
+    <TextView
+        android:text="Google Maps Geolocation API (REST)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txtFusedAccuracy"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="18dp"
+        android:id="@+id/headingGoogleMapsGeolocationAPI" />
+
+    <Button
+        android:text="Scan for APs and Fetch Location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnGoogleMapsGeolocationFetch"
+        android:textSize="14sp"
+        android:layout_below="@+id/headingGoogleMapsGeolocationAPI"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        />
+
+    <TextView
+        android:text="Found APs will be shown here"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnGoogleMapsGeolocationFetch"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="18dp"
+        android:id="@+id/txtScanResultsAps"
+        />
+
+        <TextView
+            android:text="Maps Geoloc Latitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblMapsGeolocationAPILatitude"
+            android:layout_below="@+id/txtScanResultsAps"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Awaiting Scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtMapsGeolocationAPILatitude"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblMapsGeolocationAPILatitude"
+            android:layout_alignBottom="@+id/lblMapsGeolocationAPILatitude"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Maps Geoloc Longitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblMapsGeolocationAPILongitude"
+            android:layout_below="@+id/lblMapsGeolocationAPILatitude"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Awaiting Scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtMapsGeolocationAPILongitude"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblMapsGeolocationAPILongitude"
+            android:layout_alignBottom="@+id/lblMapsGeolocationAPILongitude"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:text="Maps Geoloc Accuracy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblMapsGeolocationAPIAccuracy"
+            android:layout_below="@+id/lblMapsGeolocationAPILongitude"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Awaiting Scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtMapsGeolocationAPIAccuracy"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblMapsGeolocationAPIAccuracy"
+            android:layout_alignBottom="@+id/lblMapsGeolocationAPIAccuracy"
+            android:layout_alignParentEnd="true" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@color/zebraBackground"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/lblMapsGeolocationAPIAccuracy"
+            />
+
         <TextView
         android:text="Location Services Value Adds"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/lblFusedAccuracy"
+        android:layout_below="@+id/lblMapsGeolocationAPIAccuracy"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
         android:id="@+id/headingPositionLocationServicesVA" />
@@ -722,19 +823,40 @@
             android:layout_alignBottom="@+id/lblFusedAddress"
             android:layout_alignParentEnd="true" />
 
+        <TextView
+            android:text="GMaps Geoloc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblMapsGeolocationAPIAddress"
+            android:layout_below="@+id/txtFusedAddress"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="18dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:text="Awaiting Scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtMapsGeolocationAPIAddress"
+            android:textSize="14sp"
+            android:layout_alignBaseline="@+id/lblMapsGeolocationAPIAddress"
+            android:layout_alignBottom="@+id/lblMapsGeolocationAPIAddress"
+            android:layout_alignParentEnd="true" />
+
         <View
             android:layout_width="fill_parent"
             android:layout_height="1dp"
             android:background="@color/zebraBackground"
             android:layout_marginTop="18dp"
-            android:layout_below="@+id/txtFusedAddress"
+            android:layout_below="@+id/txtMapsGeolocationAPIAddress"
             />
 
         <TextView
             android:text="Awareness API"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/txtFusedAddress"
+            android:layout_below="@+id/txtMapsGeolocationAPIAddress"
             android:layout_alignParentStart="true"
             android:layout_marginTop="18dp"
             android:id="@+id/headingAwarenessAPI" />

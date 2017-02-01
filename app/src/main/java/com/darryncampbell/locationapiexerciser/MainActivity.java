@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     LocationManagerWrapper locationManagerWrapper = null;
     CustomProviderWrapper customProviderWrapper = null;
     AwarenessWrapper awarenessWrapper = null;
+    GMapsGeolocationAPIWrapper gMapsGeolocationAPIWrapper = null;
     GeofenceUtilities geofenceUtilities = null;
     public AddressResultReceiver mResultReceiver;
     Location bestLocationForGeofenceWithLocationManager = null;
@@ -90,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         locationServicesWrapper = new LocationServicesWrapper(this, this);
         customProviderWrapper = new CustomProviderWrapper(this, this);
         awarenessWrapper = new AwarenessWrapper(this, locationServicesWrapper, this);
+        gMapsGeolocationAPIWrapper = new GMapsGeolocationAPIWrapper(this, this);
         geofenceUtilities = new GeofenceUtilities(this);
         customProviderName = "";
         mResultReceiver = new AddressResultReceiver(new Handler());
@@ -187,6 +189,15 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                     btnGeofenceForLocationServicesStop.setEnabled(false);
                     geofenceUtilities.SetGeofencesAddedForLocationServices(false);
                 }
+            }
+        });
+        final Button btnScanForAPs = (Button) findViewById(R.id.btnGoogleMapsGeolocationFetch);
+        btnScanForAPs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //  Scan for APs, look up the AP location and display it
+                ClearGMapsUIFields();
+                gMapsGeolocationAPIWrapper.ScanForAPsAndReportPosition();
             }
         });
         final SeekBar customProviderIntervalSeek = (SeekBar) findViewById(R.id.seekCustomProviderInterval);
@@ -570,6 +581,55 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         }
     }
 
+    public void UpdateUIWithGoogleMapsAPILocation(Location location)
+    {
+        TextView txtGMapsGeolocationApiLatitude = (TextView) findViewById(R.id.txtMapsGeolocationAPILatitude);
+        TextView txtGMapsGeolocationApiLongitude = (TextView) findViewById(R.id.txtMapsGeolocationAPILongitude);
+        TextView txtGMapsGeolocationApiAccuracy = (TextView) findViewById(R.id.txtMapsGeolocationAPIAccuracy);
+        TextView txtGMapsGeolocationApiAddress = (TextView) findViewById(R.id.txtMapsGeolocationAPIAddress);
+        if (location != null)
+        {
+            UpdateUIWithLocation(txtGMapsGeolocationApiLatitude, txtGMapsGeolocationApiLongitude,
+                    txtGMapsGeolocationApiAccuracy, txtGMapsGeolocationApiAddress, location);
+        }
+        else
+        {
+            txtGMapsGeolocationApiLatitude.setText("Lookup Error");
+            txtGMapsGeolocationApiLongitude.setText("Lookup Error");
+            txtGMapsGeolocationApiAccuracy.setText("Lookup Error");
+            txtGMapsGeolocationApiAddress.setText("Lookup Error");
+        }
+        gMapsGeolocationAPIWrapper.UnregisterReceiver();
+    }
+
+    public void UpdateUIWithAPScanResult(ScanResult detectedAP)
+    {
+        TextView txtAPScanResults = (TextView) findViewById(R.id.txtScanResultsAps);
+        if (detectedAP != null)
+        {
+            String apResultAsString =  detectedAP.SSID + ", " + detectedAP.level + "dBm.  " + detectedAP.BSSID;
+            txtAPScanResults.setText(txtAPScanResults.getText() + "\n" + apResultAsString);
+        }
+        else
+        {
+            txtAPScanResults.setText("AP Scan not available");
+        }
+    }
+
+    private void ClearGMapsUIFields()
+    {
+        TextView txtGMapsGeolocationApiLatitude = (TextView) findViewById(R.id.txtMapsGeolocationAPILatitude);
+        TextView txtGMapsGeolocationApiLongitude = (TextView) findViewById(R.id.txtMapsGeolocationAPILongitude);
+        TextView txtGMapsGeolocationApiAccuracy = (TextView) findViewById(R.id.txtMapsGeolocationAPIAccuracy);
+        TextView txtGMapsGeolocationApiAddress = (TextView) findViewById(R.id.txtMapsGeolocationAPIAddress);
+        TextView txtAPScanResults = (TextView) findViewById(R.id.txtScanResultsAps);
+        txtGMapsGeolocationApiLatitude.setText("Awaiting Scan");
+        txtGMapsGeolocationApiLongitude.setText("Awaiting Scan");
+        txtGMapsGeolocationApiAccuracy.setText("Awaiting Scan");
+        txtGMapsGeolocationApiAddress.setText("Awaiting Scan");
+        txtAPScanResults.setText("Found APs will be shown here");
+    }
+
 
     class AddressResultReceiver extends ResultReceiver {
         public AddressResultReceiver(Handler handler) {
@@ -581,6 +641,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             final TextView txtGPSAddress = (TextView) findViewById(R.id.txtGPSAddress);
             final TextView txtNetworkAddress = (TextView) findViewById(R.id.txtNetworkAddress);
             final TextView txtFusedAddress = (TextView) findViewById(R.id.txtFusedAddress);
+            final TextView txtGMapsAddress = (TextView) findViewById(R.id.txtMapsGeolocationAPIAddress);
 
             // Display the address string
             // or an error message sent from the intent service.
@@ -593,9 +654,11 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 txtNetworkAddress.setText(addressOutput);
             } else if (provider.equalsIgnoreCase("fused")) {
                 txtFusedAddress.setText(addressOutput);
+            } else if (provider.equalsIgnoreCase(GMapsGeolocationAPIWrapper.GEOLOCATE_PROVIDER)) {
+                txtGMapsAddress.setText(addressOutput);
             } else {
-                //  Unrecognised source
-                Log.e(TAG, "Unrecognised provider");
+                    //  Unrecognised source
+                    Log.e(TAG, "Unrecognised provider");
             }
         }
     }
@@ -611,121 +674,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     };
 
     public void adhocTesting() {
-        //  Wifi
-        IntentFilter wifiScanFilter = new IntentFilter();
-        wifiScanFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        registerReceiver(mWifiScanReceiver, wifiScanFilter);
-        WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-        wifiManager.startScan();
-
-//        Location testLocation = new Location("gps");
-//        testLocation.setLatitude(51.2268559d);
-//        testLocation.setLongitude(-1.1417534);
-//        convertLocationToAddress(testLocation);
-//        locationServicesWrapper.startGeofence(testLocation);
-/*        final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-
-        final String tmDevice, tmSerial, androidId;
-        tmDevice = "" + tm.getDeviceId();
-        tmSerial = "" + tm.getSimSerialNumber();
-        androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-
-        UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
-        String deviceId = deviceUuid.toString();
-
-        if (!locationServicesWrapper.mGoogleApiClient.isConnected())
-        {
-            Log.e(TAG, "Location Services not Connected");
-            return;
-        }
-
-        WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo info = manager.getConnectionInfo();
-        String address = info.getMacAddress();
-*/
 
     }
-
-    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            if (intent.getAction() == WifiManager.SCAN_RESULTS_AVAILABLE_ACTION) {
-                WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-                List<ScanResult> apList = wifiManager.getScanResults();
-                JSONObject params = new JSONObject();
-                try
-                {
-                    params.put("considerIp", true);    //  todo make this configurable
-                    JSONArray wifiAccessPoints = new JSONArray();
-                    //JSONObject firstMac = new JSONObject();
-                    //firstMac.put("macAddress", "70:50:af:00:68:b1");
-                    //firstMac.put("signalStrength", -63);
-                    //firstMac.put("signalToNoiseRatio", 0);
-                    //JSONObject secondMac = new JSONObject();
-                    //secondMac.put("macAddress", "78:3e:53:94:f2:06");
-                    //secondMac.put("signalStrength", -88);
-                    //secondMac.put("signalToNoiseRatio", 0);
-                    //wifiAccessPoints.put(firstMac);
-                    //wifiAccessPoints.put(secondMac);
-                    for (int i = 0; i < apList.size(); i++)
-                    {
-                        JSONObject macInfo = new JSONObject();
-                        macInfo.put("macAddress", apList.get(i).BSSID);
-                        macInfo.put("signalStrength", apList.get(i).level);
-                        wifiAccessPoints.put(macInfo);
-                        Log.i(TAG, "AP: " + apList.get(i).SSID + ", " + apList.get(i).level + "dBm.  " + apList.get(i).BSSID);
-                    }
-                    params.put("wifiAccessPoints", wifiAccessPoints);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    return;
-                }
-
-/*                String response = performPostCall("https://www.googleapis.com/geolocation/v1/geolocate", new HashMap<String, String>() {
-                   private static final long serialVersionUID = 1L;
-                    {
-                        put("Accept", "application/json");
-                        put("Content-Type", "application/json");
-                        put("key", "AIzaSyC-loi3aDdypT35ZtYQUNO1KfLpntzej1E");
-                        put("wifiAccessPoints", "");
-                    }
-                });
-                Log.e(TAG, response);
-  */
-                //String url = "http://httpbin.org/post";
-                String url = "https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyAQytQ9-TjPh5QemTd4RNtWMcBZ7khZbIY";
-
-                //params.put("wifiAccessPoints", new JSONArray());
-
-                JsonObjectRequest jsonRequest = new JsonObjectRequest
-                        (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                // the response is already constructed as a JSONObject!
-                                try {
-                                    String accuracy = response.getString("accuracy");
-                                    response = response.getJSONObject("location");
-                                    Double latitude = response.getDouble("lat");
-                                    Double longitude = response.getDouble("lng");
-                                    Log.i(TAG, "From Google Network Lookup: Lat: " + latitude + ", Long: " + longitude + ", accuracy: " + accuracy);
-                                } catch (JSONException e) {
-                                    Log.e(TAG, e.getMessage());
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Log.e(TAG, error.toString());
-                            }
-                        });
-
-                Volley.newRequestQueue(getApplicationContext()).add(jsonRequest);
-
-            }
-        }
-    };
-
-
 }

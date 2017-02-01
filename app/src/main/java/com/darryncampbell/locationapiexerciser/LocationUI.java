@@ -1,6 +1,7 @@
 package com.darryncampbell.locationapiexerciser;
 
 import android.location.Location;
+import android.net.wifi.ScanResult;
 import android.widget.TextView;
 
 
@@ -16,4 +17,7 @@ public abstract interface LocationUI {
     public void UpdateUIWithCustomProviderEnabled(Boolean isEnabled);
     public void UpdateUIWithCustomProviderRunning(Boolean isRunning);
     public void UpdateUIWithAwareness(TextView awarenessTextView, String text);
+    public void UpdateUIWithGoogleMapsAPILocation(Location location);
+    public void UpdateUIWithAPScanResult(ScanResult detectedAP);
+
 }
