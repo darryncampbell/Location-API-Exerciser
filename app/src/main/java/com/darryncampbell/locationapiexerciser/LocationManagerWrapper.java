@@ -342,8 +342,8 @@ public class LocationManagerWrapper {
             if (lastGpsPosition != null)
             {
                 gpsLocationAosp = lastGpsPosition;
-                ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, gpsLocationAosp);
             }
+            ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, gpsLocationAosp);
         }
         else
             ui.UpdateUIWithLocation(txtGpsLatitude, txtGpsLongitude, txtGpsAccuracy, txtGPSAddress, null);
@@ -355,8 +355,8 @@ public class LocationManagerWrapper {
             if (lastNetworkPosition != null)
             {
                 networkLocationAosp = lastNetworkPosition;
-                ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, networkLocationAosp);
             }
+            ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, networkLocationAosp);
         }
         else
             ui.UpdateUIWithLocation(txtNetworkLatitude, txtNetworkLongitude, txtNetworkAccuracy, txtNetworkAddress, null);

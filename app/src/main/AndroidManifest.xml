@@ -59,6 +59,7 @@
             android:name="com.google.android.nearby.messages.API_KEY"
             android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0"
             />
+
     </application>
 
 </manifest>
