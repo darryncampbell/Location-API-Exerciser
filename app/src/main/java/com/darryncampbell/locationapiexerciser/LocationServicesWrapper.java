@@ -4,13 +4,16 @@ package com.darryncampbell.locationapiexerciser;
  * Created by darry on 30/12/2016.
  */
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -35,14 +38,17 @@ import com.google.android.gms.location.internal.FusedLocationProviderResult;
 import java.util.ArrayList;
 
 
-public class LocationServicesWrapper  implements
-        ConnectionCallbacks, OnConnectionFailedListener, com.google.android.gms.location.LocationListener{
+public class LocationServicesWrapper implements
+        ConnectionCallbacks, OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     public static final String TAG = "LOCATION API EXERCISER";
     static final long THIRTY_SECONDS = 1000 * 30;
     static final long FIVE_SECONDS = 1000 * 5;
     static final long TEN_SECONDS = 1000 * 10;
     static final long TIME_BETWEEN_GMS_UPDATES = THIRTY_SECONDS;
+    static final int LOCATION_SERVICES_CONNECTED_NOT_CONNECTED = 0;
+    static final int LOCATION_SERVICES_CONNECTED_NO_LOCATION = 1;
+    static final int LOCATION_SERVICES_CONNECTED_WITH_LOCATION = 2;
 
     protected GoogleApiClient mGoogleApiClient;
     Location fusedLocation;
@@ -52,8 +58,7 @@ public class LocationServicesWrapper  implements
     PendingIntent activityRecognitionPI = null;
     PendingIntent geofenceProximityPI = null;
 
-    public LocationServicesWrapper(LocationUI ui, Context context)
-    {
+    public LocationServicesWrapper(LocationUI ui, Context context) {
         pollingGMS = false;
         this.context = context;
         this.ui = ui;
@@ -73,38 +78,33 @@ public class LocationServicesWrapper  implements
                 .build();
     }
 
-    public GoogleApiClient getGoogleApiClient()
-    {
+    public GoogleApiClient getGoogleApiClient() {
         return mGoogleApiClient;
     }
-    public boolean isConnected()
-    {
+
+    public boolean isConnected() {
         if (mGoogleApiClient != null)
             return mGoogleApiClient.isConnected();
         else
             return false;
     }
 
-    public void initializeAndConnect()
-    {
+    public void initializeAndConnect() {
         buildGoogleApiClient();
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
         }
     }
 
-    public void onStart()
-    {
+    public void onStart() {
         initializeAndConnect();
     }
 
-    public void onStop()
-    {
+    public void onStop() {
         if (mGoogleApiClient != null) {
             unregisterForActivityRecognition();
             stopGMSLocation();
-            if (mGoogleApiClient.isConnected())
-            {
+            if (mGoogleApiClient.isConnected()) {
                 mGoogleApiClient.disconnect();
             }
         }
@@ -114,14 +114,18 @@ public class LocationServicesWrapper  implements
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "Location Services connected");
-        fusedLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (fusedLocation != null) {
-            ui.UpdateUIApplicationServicesAvailable(true);
-            ui.UpdateUIWithFusedLocation(fusedLocation);
+        try {
+            fusedLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (fusedLocation != null) {
+                ui.UpdateUIApplicationServicesAvailable(LOCATION_SERVICES_CONNECTED_WITH_LOCATION);
+                ui.UpdateUIWithFusedLocation(fusedLocation);
+            } else
+                ui.UpdateUIApplicationServicesAvailable(LOCATION_SERVICES_CONNECTED_NO_LOCATION);
         }
-        else
-            ui.UpdateUIApplicationServicesAvailable(false);
-
+        catch (SecurityException e)
+        {
+            Log.e(TAG, "Unhandled Security Exception: " + e.getMessage());
+        }
         startGMSLocation();
         registerForActivityRecognition();
 
@@ -181,7 +185,7 @@ public class LocationServicesWrapper  implements
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        ui.UpdateUIApplicationServicesAvailable(false);
+        ui.UpdateUIApplicationServicesAvailable(LOCATION_SERVICES_CONNECTED_NOT_CONNECTED);
         Log.w(TAG, "Location Services connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
@@ -189,7 +193,7 @@ public class LocationServicesWrapper  implements
     @Override
     public void onConnectionSuspended(int cause) {
         Log.w(TAG, "Location Services connection suspended");
-        ui.UpdateUIApplicationServicesAvailable(false);
+        ui.UpdateUIApplicationServicesAvailable(LOCATION_SERVICES_CONNECTED_NOT_CONNECTED);
         mGoogleApiClient.connect();
     }
 
@@ -204,24 +208,26 @@ public class LocationServicesWrapper  implements
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(TIME_BETWEEN_GMS_UPDATES);
         locationRequest.setFastestInterval(TEN_SECONDS);
-        final PendingResult<Status> result =
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
-        result.setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(Status status) {
-                if (!status.isSuccess())
-                {
-                    //  Something went wrong
-                    Log.w(TAG, "Failed to register for Location updates via location services");
+        try {
+            final PendingResult<Status> result =
+                    LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
+            result.setResultCallback(new ResultCallback<Status>() {
+                @Override
+                public void onResult(Status status) {
+                    if (!status.isSuccess()) {
+                        //  Something went wrong
+                        Log.w(TAG, "Failed to register for Location updates via location services");
+                    } else {
+                        //  Everything went OK
+                        Log.i(TAG, "Location service updates successfully registered for");
+                    }
                 }
-                else
-                {
-                    //  Everything went OK
-                    Log.i(TAG, "Location service updates successfully registered for");
-                }
-            }
-        });
-
+            });
+        }
+        catch (SecurityException e)
+        {
+            Log.e(TAG, "Unhandled Security Exception: " + e.getMessage());
+        }
     }
 
     public void stopGMSLocation()
@@ -323,24 +329,27 @@ public class LocationServicesWrapper  implements
         }
         else {
             if (geofenceProximityPI != null) {
-                LocationServices.GeofencingApi.addGeofences(
-                        mGoogleApiClient,
-                        getGeofencingRequest(location),
-                        geofenceProximityPI).setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        if (!status.isSuccess())
-                        {
-                            //  Something went wrong
-                            Log.w(TAG, "Failed to create Geofence for Location services");
+                try {
+                    LocationServices.GeofencingApi.addGeofences(
+                            mGoogleApiClient,
+                            getGeofencingRequest(location),
+                            geofenceProximityPI).setResultCallback(new ResultCallback<Status>() {
+                        @Override
+                        public void onResult(Status status) {
+                            if (!status.isSuccess()) {
+                                //  Something went wrong
+                                Log.w(TAG, "Failed to create Geofence for Location services");
+                            } else {
+                                //  Everything went OK
+                                Log.i(TAG, "Successfully created geofence for location services");
+                            }
                         }
-                        else
-                        {
-                            //  Everything went OK
-                            Log.i(TAG, "Successfully created geofence for location services");
-                        }
-                    }
-                });
+                    });
+                }
+                catch (SecurityException e)
+                {
+                    Log.e(TAG, "Unhandled Security Exception: " + e.getMessage());
+                }
             }
         }
     }
