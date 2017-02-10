@@ -50,19 +50,24 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import static android.os.SystemClock.elapsedRealtimeNanos;
 import static com.darryncampbell.locationapiexerciser.R.id.radioProviderCustom;
 import static com.darryncampbell.locationapiexerciser.R.id.radioProviderGps;
 import static com.darryncampbell.locationapiexerciser.R.id.radioProviderNetwork;
 import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataCanada;
 import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataSpain;
 import static com.darryncampbell.locationapiexerciser.R.id.radioTrackDataTasmania;
+import static java.lang.System.currentTimeMillis;
 
 public class MainActivity extends AppCompatActivity implements LocationUI {
 
@@ -79,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     public AddressResultReceiver mResultReceiver;
     Location bestLocationForGeofenceWithLocationManager = null;
     Location bestLocationForGeofenceWithLocationServices = null;
-    Boolean mLocationServicesAvailable = false;
+    int mLocationServicesAvailable = LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_NOT_CONNECTED;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -411,8 +416,8 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
         if (location != null) {
             UpdateGeofenceLocation(true, location);
-            if (!mLocationServicesAvailable)
-                UpdateUIApplicationServicesAvailable(true);
+            if (!(mLocationServicesAvailable == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_WITH_LOCATION))
+                UpdateUIApplicationServicesAvailable(LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_WITH_LOCATION);
         }
     }
 
@@ -426,7 +431,18 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         } else {
             latitude.setText(new DecimalFormat("#.#######").format(theLocation.getLatitude()));
             longitude.setText(new DecimalFormat("#.#######").format(theLocation.getLongitude()));
-            accuracy.setText(new DecimalFormat("#.#######").format(theLocation.getAccuracy()));
+            //long elapsedNanos = theLocation.getElapsedRealtimeNanos();
+            //long nanosFromSystemClock = elapsedRealtimeNanos();
+            //long age = nanosFromSystemClock - elapsedNanos;
+            //long ageInSeconds = age / 1000000000;
+            String szAccuracy;
+            szAccuracy = new DecimalFormat("#.#").format(theLocation.getAccuracy());
+            String szLastUpdateTime;
+            long millis = currentTimeMillis();
+            Date date = new Date(millis);
+            DateFormat formatter = new SimpleDateFormat("HH:mm:ss");  //  HH:mm:ss:SSS
+            szLastUpdateTime = formatter.format(date);
+            accuracy.setText(szAccuracy + " @ " + szLastUpdateTime);
             if (address != null)
                 convertLocationToAddress(theLocation);
             if (theLocation.getProvider().equalsIgnoreCase(LocationManager.GPS_PROVIDER) ||
@@ -441,17 +457,23 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         }
     }
 
-    public void UpdateUIApplicationServicesAvailable(Boolean isAvailable) {
-        mLocationServicesAvailable = isAvailable;
+    public void UpdateUIApplicationServicesAvailable(int availabilityState) {
+        mLocationServicesAvailable = availabilityState;
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
         TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
         String noLocationServices = "No Loc. Services";  //  Should use resource!!
-        if (isAvailable) {
+        if (availabilityState == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_WITH_LOCATION) {
             txtLocationServicesAvailable.setText("Yes");
             UpdateUIWithAwarenessAvailable(true);
             if (activityRecognitionTxt.getText().equals(noLocationServices))
                 activityRecognitionTxt.setText("Pending");
-        } else {
+        }
+        else if (availabilityState == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_NO_LOCATION)
+        {
+            txtLocationServicesAvailable.setText("Local Only");
+        }
+        else if (availabilityState == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_NOT_CONNECTED)
+        {
             txtLocationServicesAvailable.setText("No");
             UpdateUIWithFusedLocation(null);
             activityRecognitionTxt.setText(noLocationServices);
