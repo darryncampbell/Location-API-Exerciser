@@ -51,7 +51,15 @@ public class GMapsGeolocationAPIWrapper {
 
     public void UnregisterReceiver()
     {
-        context.unregisterReceiver(mWifiScanReceiver);
+        try
+        {
+            context.unregisterReceiver(mWifiScanReceiver);
+        }
+        catch (IllegalArgumentException e)
+        {
+            //  On my TC55 this is thrown
+            Log.i(TAG, "Wifi Scanner receiver not registered");
+        }
     }
 
     private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
