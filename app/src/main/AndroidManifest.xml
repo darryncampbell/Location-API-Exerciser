@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.darryncampbell.locationapiexerciser">
+    package="com.darryncampbell.locationapiexerciser"
+    android:installLocation="preferExternal">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
@@ -42,24 +43,26 @@
         <service
             android:name=".GeofenceLocServicesIntentService"
             android:exported="false" />
-
-        <service android:name="com.twolinessoftware.android.PlaybackService"></service>
+        <service android:name="com.twolinessoftware.android.PlaybackService" />
 
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
-            android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0"
-            />
-
+            android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyADYYiJ-I2juPub1QxhXsQK2NcITYYn-4Y"
-            />
-
+            android:value="AIzaSyADYYiJ-I2juPub1QxhXsQK2NcITYYn-4Y" />
         <meta-data
             android:name="com.google.android.nearby.messages.API_KEY"
-            android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0"
-            />
+            android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0" />
 
+        <receiver
+            android:name=".GeofenceLocServicesBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".GeofenceLocManBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>

@@ -1,14 +1,11 @@
 package com.darryncampbell.locationapiexerciser;
 
-import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofenceStatusCodes;
@@ -17,26 +14,19 @@ import com.google.android.gms.location.GeofencingEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by darry on 06/01/2017.
- */
-
-//  This IntentService is triggered when a geofence is entered or exited as defined by Google Location services
-public class GeofenceLocServicesIntentService extends IntentService {
+public class GeofenceLocServicesBroadcastReceiver extends BroadcastReceiver {
 
     public static final String TAG = "LOCATION API EXERCISER";
-
-    public GeofenceLocServicesIntentService() {
-        super("GeofenceLocServicesIntentService");
-    }
+    private Context context;
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    public void onReceive(Context context, Intent intent) {
+        this.context = context;
         if (intent != null)
         {
             GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
             if (geofencingEvent.hasError()) {
-                String errorMessage = GeofenceUtilities.getErrorString(this,
+                String errorMessage = GeofenceUtilities.getErrorString(context,
                         geofencingEvent.getErrorCode());
                 Log.e(TAG, errorMessage);
                 return;
@@ -55,7 +45,7 @@ public class GeofenceLocServicesIntentService extends IntentService {
 
                 // Get the transition details as a String.
                 final String geofenceTransitionDetails = GeofenceUtilities.getGeofenceTransitionDetails(
-                        this,
+                        context,
                         geofenceTransition,
                         triggeringGeofences
                 );
@@ -64,15 +54,14 @@ public class GeofenceLocServicesIntentService extends IntentService {
                 //  todo Change to a notification
                 //  todo tidy this whole method
                 //  Handle we have entered the specified Geofence
-                GeofenceUtilities.sendNotification(geofenceTransitionDetails, getApplicationContext(), 1);
+                GeofenceUtilities.sendNotification(geofenceTransitionDetails, context, 1);
 
                 Log.i(TAG, geofenceTransitionDetails);
             } else {
                 // Log the error.
-                Log.e(TAG, getString(R.string.geofence_transition_invalid_type, geofenceTransition));
+                Log.e(TAG, context.getString(R.string.geofence_transition_invalid_type, geofenceTransition));
             }
         }
     }
-
 
 }

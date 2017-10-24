@@ -454,6 +454,27 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                         UpdateGeofenceLocation(false, theLocation);
                 }
             }
+
+            //  Put up a notification on Oreo devices to test background location
+            String notificationLatitude = (new DecimalFormat("#.##").format(theLocation.getLatitude()));
+            String notificationLongitude = (new DecimalFormat("#.##").format(theLocation.getLongitude()));
+            String notificationAccuracy = new DecimalFormat("#.#").format(theLocation.getAccuracy());
+            String notificationLastUpdate = szLastUpdateTime;
+            String notificationProvider = "Fused";
+            int notificationId = 10;
+            if (theLocation.getProvider().equalsIgnoreCase(LocationManager.GPS_PROVIDER)) {
+                notificationProvider = "GPS";
+                notificationId = 11;
+            }
+            else if (theLocation.getProvider().equalsIgnoreCase(LocationManager.NETWORK_PROVIDER)) {
+                notificationProvider = "Network";
+                notificationId = 12;
+            }
+            String locationNotificationText = "[" + notificationProvider + "]: " + notificationLatitude + " " + notificationLongitude +
+                    " " + notificationAccuracy + " @" + notificationLastUpdate;
+
+            GeofenceUtilities.sendNotification(locationNotificationText, this, notificationId);
+
         }
     }
 

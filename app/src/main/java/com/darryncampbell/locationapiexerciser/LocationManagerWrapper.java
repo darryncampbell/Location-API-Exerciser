@@ -62,8 +62,16 @@ public class LocationManagerWrapper {
         customListener = null;
         mStarted = false;
         mCustomLocationStarted = false;
-        Intent intent = new Intent(context, GeofenceLocManIntentService.class);
-        geofenceProximityPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        if (GeofenceUtilities.USE_SERVICES_TO_RECEIVE_GEOFENCES)
+        {
+            Intent intent = new Intent(context, GeofenceLocManIntentService.class);
+            geofenceProximityPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+        else
+        {
+            Intent intent = new Intent(context, GeofenceLocManBroadcastReceiver.class);
+            geofenceProximityPI = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
     }
 
     public void populateUiStatus() {

@@ -81,7 +81,7 @@ public class FetchAddressIntentService extends IntentService {
 
                 // Fetch the address lines using getAddressLine,
                 // join them, and send them to the thread.
-                for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
                     addressFragments.add(address.getAddressLine(i));
                 }
                 deliverResultToReceiver(Constants.SUCCESS_RESULT, provider,

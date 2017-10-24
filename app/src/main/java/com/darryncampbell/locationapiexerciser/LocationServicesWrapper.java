@@ -33,7 +33,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.internal.FusedLocationProviderResult;
 
 import java.util.ArrayList;
 
@@ -46,6 +45,7 @@ public class LocationServicesWrapper implements
     static final long FIVE_SECONDS = 1000 * 5;
     static final long TEN_SECONDS = 1000 * 10;
     static final long TIME_BETWEEN_GMS_UPDATES = THIRTY_SECONDS;
+    static final long MAX_WAIT_TIME = TIME_BETWEEN_GMS_UPDATES / 2 * 3;
     static final int LOCATION_SERVICES_CONNECTED_NOT_CONNECTED = 0;
     static final int LOCATION_SERVICES_CONNECTED_NO_LOCATION = 1;
     static final int LOCATION_SERVICES_CONNECTED_WITH_LOCATION = 2;
@@ -64,8 +64,17 @@ public class LocationServicesWrapper implements
         this.ui = ui;
         Intent intent = new Intent(context, ActivityRecognitionIntentService.class);
         activityRecognitionPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Intent intent2 = new Intent(context, GeofenceLocServicesIntentService.class);
-        geofenceProximityPI = PendingIntent.getService(context, 0, intent2, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if (GeofenceUtilities.USE_SERVICES_TO_RECEIVE_GEOFENCES)
+        {
+            Intent intent2 = new Intent(context, GeofenceLocServicesIntentService.class);
+            geofenceProximityPI = PendingIntent.getService(context, 0, intent2, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+        else
+        {
+            Intent intent3 = new Intent(context, GeofenceLocServicesBroadcastReceiver.class);
+            geofenceProximityPI = PendingIntent.getBroadcast(context, 0, intent3, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -207,6 +216,7 @@ public class LocationServicesWrapper implements
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(TIME_BETWEEN_GMS_UPDATES);
+        locationRequest.setMaxWaitTime(MAX_WAIT_TIME);
         locationRequest.setFastestInterval(TEN_SECONDS);
         try {
             final PendingResult<Status> result =
