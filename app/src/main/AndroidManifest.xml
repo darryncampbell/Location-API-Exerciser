@@ -12,7 +12,7 @@
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
-    <uses-feature android:name="android.hardware.location.gps" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
 
     <application
         android:allowBackup="true"
@@ -47,13 +47,13 @@
 
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
-            android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0" />
+            android:value="AIzaSyBug8C3LISEs02Ku9zqNGHq99-aF68XNms" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyADYYiJ-I2juPub1QxhXsQK2NcITYYn-4Y" />
+            android:value="AIzaSyCYXsRdRYHT1dozFTJPn9q6b4QOmPs-mbU" />
         <meta-data
             android:name="com.google.android.nearby.messages.API_KEY"
-            android:value="AIzaSyBVHTu7uB64IjnMtMQVXyYBgUqlUVwD9a0" />
+            android:value="AIzaSyDl1BEaZctcjGYMADDlQsgjOy_xsLyKONg" />
 
         <receiver
             android:name=".GeofenceLocServicesBroadcastReceiver"
