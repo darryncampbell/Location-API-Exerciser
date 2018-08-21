@@ -22,7 +22,7 @@ public class GeofenceLocManBroadcastReceiver extends BroadcastReceiver {
                 Boolean didEnter = intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, false);
                 if (didEnter)
                 {
-                    GeofenceUtilities.sendNotification("Entered: From Location Manager", context, 0);
+                    //GeofenceUtilities.sendNotification("Entered: From Location Manager", context, 0);
                     //  Handle we have entered the specified Geofence
 //                    Handler handler=new Handler(Looper.getMainLooper());
 //                    handler.post(new Runnable(){
@@ -35,7 +35,7 @@ public class GeofenceLocManBroadcastReceiver extends BroadcastReceiver {
                 else
                 {
                     //  Handle we have exited the specified Geofence
-                    GeofenceUtilities.sendNotification("Exited: From Location Manager", context, 0);
+                    //GeofenceUtilities.sendNotification("Exited: From Location Manager", context, 0);
 //                    Handler handler=new Handler(Looper.getMainLooper());
 //                    handler.post(new Runnable(){
 //                        public void run(){

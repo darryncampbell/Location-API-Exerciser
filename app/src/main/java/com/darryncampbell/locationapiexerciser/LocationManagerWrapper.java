@@ -20,15 +20,14 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import static com.darryncampbell.locationapiexerciser.GeofenceUtilities.TWELVE_HOURS_IN_MILLISECONDS;
-import static com.darryncampbell.locationapiexerciser.GeofenceUtilities.TWENTY_METERS;
-
 /**
  * Created by darry on 30/12/2016.
  */
 
 public class LocationManagerWrapper {
 
+    public static long TWELVE_HOURS_IN_MILLISECONDS = 12 * 60 * 60 * 1000;
+    public static float TWENTY_METERS = 20;
     public static final String TAG = "LOCATION API EXERCISER";
     static final long TEN_SECONDS = 1000 * 10;
     static final long TIME_BETWEEN_GPS_UPDATES = TEN_SECONDS;
@@ -62,7 +61,7 @@ public class LocationManagerWrapper {
         customListener = null;
         mStarted = false;
         mCustomLocationStarted = false;
-        if (GeofenceUtilities.USE_SERVICES_TO_RECEIVE_GEOFENCES)
+        if (false)
         {
             Intent intent = new Intent(context, GeofenceLocManIntentService.class);
             geofenceProximityPI = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -172,26 +171,9 @@ public class LocationManagerWrapper {
     }
 
     public void startGeofence(Location location) {
-        if (geofenceProximityPI != null) {
-            //locationManager.addProximityAlert(51.2268559, -1.1417534, TWENTY_METERS, TWELVE_HOURS_IN_MILLISECONDS,
-            //        geofenceProximityPI);
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            locationManager.addProximityAlert(location.getLatitude(), location.getLongitude(), TWENTY_METERS, GeofenceUtilities.DO_NOT_EXPIRE,
-                    geofenceProximityPI);
-        }
-
     }
 
     public void stopGeofence() {
-        if (geofenceProximityPI != null) {
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            locationManager.removeProximityAlert(geofenceProximityPI);
-            GeofenceUtilities.cancelNotification(context, 0);
-        }
     }
 
     public void stopAospLocation() {

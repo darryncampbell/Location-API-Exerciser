@@ -47,7 +47,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static com.darryncampbell.locationapiexerciser.LocationServicesWrapper.TAG;
 
 public class PlaybackService extends Service implements GpxSaxParserListener {
 
@@ -250,7 +249,7 @@ public class PlaybackService extends Service implements GpxSaxParserListener {
         }
         catch (IllegalArgumentException e)
         {
-            Log.i(TAG, "Provider already exists (" + PROVIDER_NAME + ").  No need to recreate");
+            Log.i("DCC", "Provider already exists (" + PROVIDER_NAME + ").  No need to recreate");
         }
     }
 

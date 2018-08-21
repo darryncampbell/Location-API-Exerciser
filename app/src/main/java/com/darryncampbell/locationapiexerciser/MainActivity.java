@@ -75,16 +75,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     public static final int LOCATION_SETTINGS_PERMISSION_REQUEST = 1;
     boolean locationPermission = false;
     String customProviderName;
-    LocationServicesWrapper locationServicesWrapper = null;
     LocationManagerWrapper locationManagerWrapper = null;
     CustomProviderWrapper customProviderWrapper = null;
-    AwarenessWrapper awarenessWrapper = null;
     GMapsGeolocationAPIWrapper gMapsGeolocationAPIWrapper = null;
-    GeofenceUtilities geofenceUtilities = null;
     public AddressResultReceiver mResultReceiver;
     Location bestLocationForGeofenceWithLocationManager = null;
     Location bestLocationForGeofenceWithLocationServices = null;
-    int mLocationServicesAvailable = LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_NOT_CONNECTED;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,51 +89,17 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         locationManagerWrapper = new LocationManagerWrapper(this, this, customProviderName);
-        locationServicesWrapper = new LocationServicesWrapper(this, this);
         customProviderWrapper = new CustomProviderWrapper(this, this);
-        awarenessWrapper = new AwarenessWrapper(this, locationServicesWrapper, this);
         gMapsGeolocationAPIWrapper = new GMapsGeolocationAPIWrapper(this, this);
-        geofenceUtilities = new GeofenceUtilities(this);
         customProviderName = "";
         mResultReceiver = new AddressResultReceiver(new Handler());
         Button settingsRequestHighAccuracy = (Button) findViewById(R.id.btnLocationSettingsForHighAccuracy);
         Button settingsRequestBle = (Button) findViewById(R.id.btnLocationSettingsForBle);
-        settingsRequestHighAccuracy.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                locationServicesWrapper.GetLocationSettings(MainActivity.this, false);
-
-            }
-        });
-        settingsRequestBle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                locationServicesWrapper.GetLocationSettings(MainActivity.this, true);
-            }
-        });
         final Button btnAwarenessGetSnapshot = (Button) findViewById(R.id.btnAwarenessGetSnapshot);
-        btnAwarenessGetSnapshot.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if (awarenessWrapper != null)
-                            awarenessWrapper.getSnapshot();
-                    }
-                }
-        );
         final Button btnGeofenceForLocationManagerStart = (Button) findViewById(R.id.btnGeofencingViaLocationManagerStart);
         final Button btnGeofenceForLocationManagerStop = (Button) findViewById(R.id.btnGeofencingViaLocationManagerStop);
         final Button btnGeofenceForLocationServicesStart = (Button) findViewById(R.id.btnGeofencingViaLocationServicesStart);
         final Button btnGeofenceForLocationServicesStop = (Button) findViewById(R.id.btnGeofencingViaLocationServicesStop);
-        if (geofenceUtilities.GetGeofencesAddedForLocationManager()) {
-            //  Geofence already exists for Location Manager
-            btnGeofenceForLocationManagerStart.setEnabled(false);
-            btnGeofenceForLocationManagerStop.setEnabled(true);
-        } else {
-            //  Geofence does not exist for Location Manager
-            btnGeofenceForLocationManagerStart.setEnabled(true);
-            btnGeofenceForLocationManagerStop.setEnabled(false);
-        }
         btnGeofenceForLocationManagerStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -145,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 if (bestLocationForGeofenceWithLocationManager != null) {
                     btnGeofenceForLocationManagerStart.setEnabled(false);
                     btnGeofenceForLocationManagerStop.setEnabled(true);
-                    geofenceUtilities.SetGeofencesAddedForLocationManager(true);
                     locationManagerWrapper.startGeofence(bestLocationForGeofenceWithLocationManager);
                 } else {
                     Toast.makeText(getApplicationContext(), "Unable to set Geofence as no location available", Toast.LENGTH_SHORT).show();
@@ -158,19 +119,9 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 //  Stop Location Manager Geofence
                 btnGeofenceForLocationManagerStart.setEnabled(true);
                 btnGeofenceForLocationManagerStop.setEnabled(false);
-                geofenceUtilities.SetGeofencesAddedForLocationManager(false);
                 locationManagerWrapper.stopGeofence();
             }
         });
-        if (geofenceUtilities.GetGeofencesAddedForLocationServices()) {
-            //  Geofence already exists for Location Services
-            btnGeofenceForLocationServicesStart.setEnabled(false);
-            btnGeofenceForLocationServicesStop.setEnabled(true);
-        } else {
-            //  Geofence does not exist for Location Services
-            btnGeofenceForLocationServicesStart.setEnabled(true);
-            btnGeofenceForLocationServicesStop.setEnabled(false);
-        }
         btnGeofenceForLocationServicesStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -178,8 +129,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                 if (bestLocationForGeofenceWithLocationServices != null) {
                     btnGeofenceForLocationServicesStart.setEnabled(false);
                     btnGeofenceForLocationServicesStop.setEnabled(true);
-                    geofenceUtilities.SetGeofencesAddedForLocationServices(true);
-                    locationServicesWrapper.startGeofence(bestLocationForGeofenceWithLocationServices);
                 } else {
                     Toast.makeText(getApplicationContext(), "Unable to set Geofence as no location available", Toast.LENGTH_SHORT).show();
                 }
@@ -189,11 +138,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
             @Override
             public void onClick(View view) {
                 //  Stop Location Services Geofence
-                if (locationServicesWrapper.stopGeofence()) {
-                    btnGeofenceForLocationServicesStart.setEnabled(true);
-                    btnGeofenceForLocationServicesStop.setEnabled(false);
-                    geofenceUtilities.SetGeofencesAddedForLocationServices(false);
-                }
             }
         });
         final Button btnScanForAPs = (Button) findViewById(R.id.btnGoogleMapsGeolocationFetch);
@@ -328,7 +272,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         } else {
             //  Permissions had previously been granted
             locationManagerWrapper.populateUiStatus();
-            locationServicesWrapper.onStart();
             locationManagerWrapper.startAospLocation();
             customProviderWrapper.onStart();
         }
@@ -337,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     @Override
     protected void onStop() {
         super.onStop();
-        locationServicesWrapper.onStop();
         locationManagerWrapper.stopAospLocation();
         locationManagerWrapper.stopCustomProviderListener();
         customProviderWrapper.onStop();
@@ -362,7 +304,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
                     Log.i(TAG, "Location Fine permission granted");
                     locationPermission = true;
                     locationManagerWrapper.populateUiStatus();
-                    locationServicesWrapper.initializeAndConnect();
                     locationManagerWrapper.startAospLocation();
                 } else {
                     //  Permission denied
@@ -416,8 +357,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         UpdateUIWithLocation(txtFusedLatitude, txtFusedLongitude, txtFusedAccuracy, txtFusedAddress, location);
         if (location != null) {
             UpdateGeofenceLocation(true, location);
-            if (!(mLocationServicesAvailable == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_WITH_LOCATION))
-                UpdateUIApplicationServicesAvailable(LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_WITH_LOCATION);
         }
     }
 
@@ -480,33 +419,12 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     }
 
     public void UpdateUIApplicationServicesAvailable(int availabilityState) {
-        mLocationServicesAvailable = availabilityState;
         TextView txtLocationServicesAvailable = (TextView) findViewById(R.id.txtlocationServicesAvailable);
         TextView activityRecognitionTxt = (TextView) findViewById(R.id.txtActivityRecognition);
         String noLocationServices = "No Loc. Services";  //  Should use resource!!
-        if (availabilityState == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_WITH_LOCATION) {
-            txtLocationServicesAvailable.setText("Yes");
-            UpdateUIWithAwarenessAvailable(true);
-            if (activityRecognitionTxt.getText().equals(noLocationServices))
-                activityRecognitionTxt.setText("Pending");
-        }
-        else if (availabilityState == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_NO_LOCATION)
-        {
-            txtLocationServicesAvailable.setText("Local Only");
-        }
-        else if (availabilityState == LocationServicesWrapper.LOCATION_SERVICES_CONNECTED_NOT_CONNECTED)
-        {
-            txtLocationServicesAvailable.setText("No");
-            UpdateUIWithFusedLocation(null);
-            activityRecognitionTxt.setText(noLocationServices);
-        }
     }
 
     public void convertLocationToAddress(Location location) {
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, location);
-        startService(intent);
     }
 
     private void UpdateGeofenceLocation(Boolean isLocationServices, Location newLocation) {
@@ -689,21 +607,6 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
 
             // Display the address string
             // or an error message sent from the intent service.
-            String addressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
-            String provider = resultData.getString(FetchAddressIntentService.Constants.LOCATION_PROVIDER);
-            Log.i(TAG, "Received decoded address from " + provider + ": " + addressOutput);
-            if (provider.equals(LocationManager.GPS_PROVIDER)) {
-                txtGPSAddress.setText(addressOutput);
-            } else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
-                txtNetworkAddress.setText(addressOutput);
-            } else if (provider.equalsIgnoreCase("fused")) {
-                txtFusedAddress.setText(addressOutput);
-            } else if (provider.equalsIgnoreCase(GMapsGeolocationAPIWrapper.GEOLOCATE_PROVIDER)) {
-                txtGMapsAddress.setText(addressOutput);
-            } else {
-                    //  Unrecognised source
-                    Log.e(TAG, "Unrecognised provider");
-            }
         }
     }
 
