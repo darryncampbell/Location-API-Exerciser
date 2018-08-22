@@ -265,9 +265,9 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
     protected void onStart() {
         super.onStart();
         //  Request Permission for fine location
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     1);
         } else {
             //  Permissions had previously been granted
