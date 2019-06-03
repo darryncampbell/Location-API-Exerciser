@@ -638,6 +638,8 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         }
         else
         {
+            //  TODO: CURRENT API CALL IS RETURNING LOOKUP ERROR - POSSIBLY BECAUSE THE APP IS NOT
+            //  TODO: LINKED TO A PAID ACCOUNT
             txtGMapsGeolocationApiLatitude.setText("Lookup Error");
             txtGMapsGeolocationApiLongitude.setText("Lookup Error");
             txtGMapsGeolocationApiAccuracy.setText("Lookup Error");

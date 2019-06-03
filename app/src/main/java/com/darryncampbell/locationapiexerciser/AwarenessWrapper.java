@@ -195,6 +195,7 @@ public class AwarenessWrapper {
                 });
 
         //  PLACES
+        //  TODO: PLACES REQUIRES AN ACCOUNT WITH A CONFIGURED PAYMENT METHOD - THIS PROJECT HAS NO SUCH ACCOUNT
         Awareness.SnapshotApi.getPlaces(clientWrapper.getGoogleApiClient())
                 .setResultCallback(new ResultCallback<PlacesResult>() {
                     @Override

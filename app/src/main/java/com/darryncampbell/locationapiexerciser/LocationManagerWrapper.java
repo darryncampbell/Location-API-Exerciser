@@ -17,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -360,6 +361,12 @@ public class LocationManagerWrapper {
         {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TIME_BETWEEN_NETWORK_UPDATES, 0, networkListener);
             Location lastNetworkPosition = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            //  TESTING ONLY
+            if (lastNetworkPosition == null)
+                Toast.makeText(context, "Last Network position is NULL", Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(context, "Last Network position is: " + lastNetworkPosition.getLatitude(), Toast.LENGTH_LONG).show();
+            //  END TESTING ONLY
             if (lastNetworkPosition != null)
             {
                 networkLocationAosp = lastNetworkPosition;
