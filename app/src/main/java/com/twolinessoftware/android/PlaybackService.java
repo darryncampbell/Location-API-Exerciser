@@ -259,7 +259,6 @@ public class PlaybackService extends Service implements GpxSaxParserListener {
      * Show a notification while this service is running.
      */
     private void showNotification() {
-        //  todo DCC
         // In this sample, we'll use the same text for the ticker and the expanded notification
  /*       CharSequence text = "GPX Playback Running";
 

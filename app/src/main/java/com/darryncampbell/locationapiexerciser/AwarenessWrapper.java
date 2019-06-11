@@ -195,13 +195,12 @@ public class AwarenessWrapper {
                 });
 
         //  PLACES
-        //  TODO: PLACES REQUIRES AN ACCOUNT WITH A CONFIGURED PAYMENT METHOD - THIS PROJECT HAS NO SUCH ACCOUNT
         Awareness.SnapshotApi.getPlaces(clientWrapper.getGoogleApiClient())
                 .setResultCallback(new ResultCallback<PlacesResult>() {
                     @Override
                     public void onResult(@NonNull PlacesResult placesResult) {
                         if (!placesResult.getStatus().isSuccess()) {
-                            Log.e(TAG, "Could not get places.");
+                            Log.e(TAG, "Could not get places.  Need to enable billing for this application?");
                             ui.UpdateUIWithAwareness(txtAwarenessPlaces, "Error retrieving places");
                         }
                         else

@@ -638,12 +638,13 @@ public class MainActivity extends AppCompatActivity implements LocationUI {
         }
         else
         {
-            //  TODO: CURRENT API CALL IS RETURNING LOOKUP ERROR - POSSIBLY BECAUSE THE APP IS NOT
-            //  TODO: LINKED TO A PAID ACCOUNT
-            txtGMapsGeolocationApiLatitude.setText("Lookup Error");
-            txtGMapsGeolocationApiLongitude.setText("Lookup Error");
-            txtGMapsGeolocationApiAccuracy.setText("Lookup Error");
-            txtGMapsGeolocationApiAddress.setText("Lookup Error");
+            //  The Geolation API requires Billing to be enabled.  Since the key is embedded within this
+            //  app, I have not enabled billing:
+            //  https://developers.google.com/maps/documentation/geolocation/intro
+            txtGMapsGeolocationApiLatitude.setText("Requires Billing");
+            txtGMapsGeolocationApiLongitude.setText("Requires Billing");
+            txtGMapsGeolocationApiAccuracy.setText("Requires Billing");
+            txtGMapsGeolocationApiAddress.setText("Requires Billing");
         }
         gMapsGeolocationAPIWrapper.UnregisterReceiver();
     }

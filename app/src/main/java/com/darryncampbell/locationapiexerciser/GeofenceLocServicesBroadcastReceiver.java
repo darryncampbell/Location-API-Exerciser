@@ -51,8 +51,6 @@ public class GeofenceLocServicesBroadcastReceiver extends BroadcastReceiver {
                 );
 
                 // Send notification and log the transition details.
-                //  todo Change to a notification
-                //  todo tidy this whole method
                 //  Handle we have entered the specified Geofence
                 GeofenceUtilities.sendNotification(geofenceTransitionDetails, context, 1);
 
