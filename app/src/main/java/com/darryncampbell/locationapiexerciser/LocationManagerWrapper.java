@@ -13,7 +13,7 @@ import android.location.LocationProvider;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.TextView;
@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 import java.util.List;
 
-import static com.darryncampbell.locationapiexerciser.GeofenceUtilities.TWELVE_HOURS_IN_MILLISECONDS;
 import static com.darryncampbell.locationapiexerciser.GeofenceUtilities.TWENTY_METERS;
 
 /**
